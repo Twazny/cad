@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Point, scalePoint } from "../../geometry/models/point";
+import { Point, scalePoint, translatePoint } from "../../geometry/models/point";
 import { BehaviorSubject, Observable, Subject, combineLatest, map, scan, startWith } from "rxjs";
 import { ObjectsService } from "./objects.service";
 import { Rect } from "../../geometry/models/rect";
@@ -8,7 +8,7 @@ import { Segment, scaleSegment, translateSegment } from "../../geometry/models/s
 import { containsPoint } from '../../geometry/models/positioned-rect';
 import { rxState } from '@rx-angular/state';
 import { WorkspaceState } from "../models/workspace-state";
-import { Vector } from "src/app/geometry/models/vector";
+import { Vector, distance } from "src/app/geometry/models/vector";
 
 @Injectable()
 export class ViewportService {
@@ -16,7 +16,7 @@ export class ViewportService {
   private readonly objectService: ObjectsService = inject(ObjectsService);
 
   private readonly state = rxState<WorkspaceState>(({ set, connect }) => {
-    set({ 
+    set({
       zoom: ViewportService.INITIAL_ZOOM,
       lastPosition: ViewportService.INITIAL_POSITION,
       position: ViewportService.INITIAL_POSITION,
@@ -25,73 +25,94 @@ export class ViewportService {
     connect('objects', this.objectService.segments$);
   });
 
-  private static readonly INITIAL_POSITION: Point = {x: 0, y: 0};
+  private static readonly INITIAL_POSITION: Point = { x: 0, y: 0 };
   private static readonly INITIAL_ZOOM: number = 1;
   private static readonly MAKS_ZOOM: number = 10;
-  private static readonly MIN_ZOOM: number = 0.1; 
+  private static readonly MIN_ZOOM: number = 0.1;
 
   public zoom$: Observable<number> = this.state.select('zoom');
   public position$: Observable<Point> = this.state.select('position');
 
   public yAxis$: Observable<number> = this.state.select(
     ['position', 'zoom'],
-    ({position, zoom}) => {
-    return position.y * zoom;
-  })
+    ({ position, zoom }) => {
+      return -position.y * zoom;
+    })
 
   public xAxis$: Observable<number> = this.state.select(
     ['position', 'zoom'],
-    ({position, zoom}) => {
-    return position.x * zoom;
-  })
+    ({ position, zoom }) => {
+      return -position.x * zoom;
+    })
 
-  public xGridLines$: Observable<number[]> = this.state.select(
+  public gridLines$: Observable<{
+    vertical: number[],
+    horizontal: number[]
+  }> = this.state.select(
     ['position', 'zoom', 'viewportSize'],
-    ({position, zoom, viewportSize}) => {
-      const leftLinesCount = Math.floor(position.x / 10);
-      const rightLinesCount = Math.floor((viewportSize.width - position.x) / 10);
-      const total = leftLinesCount + rightLinesCount;
-      
-      const getStep = (viewportWidth: number): number => {
-        let step = 10;
-        let noOfLines = viewportWidth; 
+    ({ position, zoom, viewportSize }) => {
+
+      const getStep = (viewportWidth: number, zoom: number): number => {
+        let step = 1;
+        let noOfLines = viewportWidth;
         do {
-          console.log('fff')
-          noOfLines = Math.floor(viewportWidth / step);
           step *= 10;
-        } while (noOfLines > 20);
+          noOfLines = Math.floor(viewportWidth / zoom / step);
+        } while (noOfLines > 30);
         return step;
       }
 
-      console.log(getStep(viewportSize.width))
+      const step: number = getStep(viewportSize.width, zoom);
+      const verticalLinesNo = Math.ceil(viewportSize.width / zoom / step);
+      const horizontalLinesNo = Math.ceil(viewportSize.height / zoom / step);
 
-      const a = [
-        (position.x + 20) * zoom,
-        (position.x + 10) * zoom,
-        // position.x * zoom,
-        (position.x - 10) * zoom,
-        (position.x - 20) * zoom
-      ]
-      console.log(viewportSize, a)
-      return a;
-    } 
+      const getFirstLinePos = (pos: number): number => {
+        if (pos < 0) {
+          return pos - (pos % step);
+        } else if (pos > 0) {
+          return pos + (step - pos % step)
+        } else {
+          return step;
+        }
+      };
+
+      const firstVerticalLine = getFirstLinePos(position.x);
+      const firstHorizontalLine = getFirstLinePos(position.y);
+
+      const getLines = (linesCount: number, firstLinePos: number, pos: number, step: number) => {
+        return Array(linesCount).fill(null).reduce((acc, _, i) => {
+          const linePos = (firstLinePos + step * i) - pos;
+          if (linePos !== pos * -1) {
+            acc.push(linePos * zoom);
+          }
+          return acc;
+        }, []);
+      };
+
+      return {
+        vertical: getLines(verticalLinesNo, firstVerticalLine, position.x, step),
+        horizontal: getLines(horizontalLinesNo, firstHorizontalLine, position.y, step),
+      }
+    }
   )
 
   public viewportObjects$: Observable<Segment[]> = this.state.select(
     ['zoom', 'position', 'viewportSize', 'objects'],
     ({ zoom, position, viewportSize, objects }) => {
       const visibleRect: PositionedRect = {
-        point: {x: 0, y: 0},
+        point: { x: 0, y: 0 },
         width: viewportSize.width,
         height: viewportSize.height
-      }
+      };
+
+      const translateVector = { x: -position.x, y: -position.y };
 
       let visible: Segment[] = [];
       let notVisible: Segment[] = [];
       let intersected: Segment[] = [];
 
       objects.map((segment: Segment) => {
-        return translateSegment(scaleSegment(segment, zoom), position, zoom);
+        return scaleSegment(translateSegment(segment, translateVector), zoom);
       }).forEach((segment: Segment) => {
         const firstPoint = containsPoint(visibleRect, segment[0]);
         const secondPoint = containsPoint(visibleRect, segment[1]);
@@ -117,63 +138,67 @@ export class ViewportService {
   );
 
   public connectDrag(drag$: Observable<Vector>): void {
-    this.state.connect('position', drag$, ({lastPosition, zoom}, vector) => {
-      return {x: lastPosition.x - vector.x * -1 / zoom, y: lastPosition.y - vector.y * -1 / zoom};
+    this.state.connect('position', drag$, ({ lastPosition, zoom }, vector) => {
+      return { x: (lastPosition.x + vector.x / zoom), y: (lastPosition.y + vector.y / zoom) };
     });
   }
 
   public connectDragEnd(dragEnd$: Observable<void>): void {
-    this.state.connect('lastPosition', dragEnd$, ({position}) => position);
+    this.state.connect('lastPosition', dragEnd$, ({ position }) => position);
   }
 
   public connectResize(viewportSize$: Observable<Rect>): void {
     this.state.connect('viewportSize', viewportSize$);
   }
 
+  public connectZoom(zoomChange$: Observable<number>): void {
+    this.state.connect(zoomChange$, ({ zoom, position, viewportSize }, changeDirection) => {
+      const mouseScreenPosition: Point = { x: viewportSize.width / 2, y: viewportSize.height / 2 };
+      return this.handleZoomChange(zoom, position, mouseScreenPosition, changeDirection);
+    })
+  }
+
   public connectWheel(wheel$: Observable<WheelEvent>): void {
     this.state.connect(wheel$, ({ zoom, position }, event) => {
       event.preventDefault();
       const { deltaY, clientX, clientY } = event;
-
-      const factor: number = this.getZoomChange(zoom, deltaY);
-      const newZoom = Math.min(Math.max(zoom + factor, ViewportService.MIN_ZOOM), ViewportService.MAKS_ZOOM);
-
-      const wheelPosition = {
-        x: position.x - clientX / zoom,
-        y: position.y - clientY / zoom,
-      }
-
-      const newWheelPosition = {
-        x: position.x - clientX / newZoom,
-        y: position.y - clientY / newZoom,
-      }
-
-      const diff: Vector = {
-        x: newWheelPosition.x - wheelPosition.x,
-        y: newWheelPosition.y - wheelPosition.y
-      }
-
-      return {
-        zoom: newZoom,
-        position: {
-          x: position.x - diff.x,
-          y: position.y - diff.y
-        },
-        lastPosition: {
-          x: position.x - diff.x,
-          y: position.y - diff.y
-        }
-      }
+      const mouseScreenPosition: Point = { x: clientX, y: clientY };
+      return this.handleZoomChange(zoom, position, mouseScreenPosition, deltaY);
     })
   }
 
+  private handleZoomChange(zoom: number, position: Point, mouseScreenPosition: Point, changeDirection: number): Pick<WorkspaceState, 'zoom' | 'position' | 'lastPosition'> {
+    const factor: number = this.getZoomChange(zoom, changeDirection);
+    const newZoom = Math.min(Math.max(Math.round((zoom + factor) * 100) / 100, ViewportService.MIN_ZOOM), ViewportService.MAKS_ZOOM);
+
+    const wheelPosition = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
+    const newWheelPosition = this.mouseScreenToReal(position, mouseScreenPosition, newZoom);
+    const diff: Vector = distance(newWheelPosition, wheelPosition);
+    const newPosition = translatePoint(position, diff);
+
+    return {
+      zoom: newZoom,
+      position: newPosition,
+      lastPosition: newPosition
+    }
+  }
+
+  private mouseScreenToReal(realPosition: Point, mouseScreenPosition: Point, scale: number): Point {
+    return {
+      x: realPosition.x - mouseScreenPosition.x / scale,
+      y: realPosition.y - mouseScreenPosition.y / scale,
+    }
+  }
+
   private getZoomChange(currentZoom: number, changeDirection: number): number {
+    const zoomOutFactor: number = 0.05;
+    const zoomInFactor: number = 0.5;
     if (currentZoom === 1) {
-      return changeDirection > 0 ? 1 : -0.1;
+      return changeDirection > 0 ? zoomInFactor : zoomOutFactor * -1;
     } else if (currentZoom < 1) {
-      return changeDirection > 0 ? 0.1 : -0.1;
+      return changeDirection > 0 ? zoomOutFactor : zoomOutFactor * -1;
     } else {
-      return changeDirection > 0 ? 1 : -1;
+      return changeDirection > 0 ? zoomInFactor : zoomInFactor * -1;
     }
   }
 }

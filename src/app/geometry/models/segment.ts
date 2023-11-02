@@ -1,4 +1,4 @@
-import { Point, scalePoint } from "./point";
+import { Point, scalePoint, translatePoint } from "./point";
 import { PositionedRect } from "./positioned-rect";
 
 export type Segment = [Point, Point];
@@ -8,18 +8,12 @@ export function scaleSegment(segment: Segment, scale: number): Segment {
         scalePoint(segment[0], scale),
         scalePoint(segment[1], scale)
     ]
-  };
+};
 
-export function translateSegment(segment: Segment, vector: Point, scale: number): Segment {
+export function translateSegment(segment: Segment, vector: Point): Segment {
     return [
-        {
-            x: segment[0].x + vector.x * scale,
-            y: segment[0].y + vector.y * scale,
-        },
-        {
-            x: segment[1].x + vector.x * scale,
-            y: segment[1].y + vector.y * scale,
-        }
+        translatePoint(segment[0], vector),
+        translatePoint(segment[1], vector)
     ]
 }
 

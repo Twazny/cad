@@ -21,12 +21,12 @@ export class DragDirective implements OnInit {
         .pipe(tap((event) => this.dragEnd.emit(event)));
     private readonly mouseMove$: Observable<MouseEvent> = fromEvent<MouseEvent>(this.host.nativeElement, 'mousemove');
     private readonly mouseDrag$: Observable<Vector> = this.mouseDown$.pipe(
-      switchMap(({screenX: beginX, screenY: beginY}) => this.mouseMove$.pipe(
-        takeUntil(this.mouseUp$),
-        map(({screenX: newX, screenY: newY}) => ({x: newX- beginX, y: newY - beginY})),
-      )),
-      tap((vector: Vector) => this.drag.emit(vector)),
-      takeUntilDestroyed(this.destroyRef)
+        switchMap(({ screenX: beginX, screenY: beginY }) => this.mouseMove$.pipe(
+            takeUntil(this.mouseUp$),
+            map(({ screenX: newX, screenY: newY }) => ({ x: beginX - newX, y: beginY - newY })),
+        )),
+        tap((vector: Vector) => this.drag.emit(vector)),
+        takeUntilDestroyed(this.destroyRef)
     );
 
     public ngOnInit(): void {
