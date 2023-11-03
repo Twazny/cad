@@ -8,4 +8,5 @@ export interface WorkspaceState {
     lastPosition: Point;
     position: Point;
     viewportSize: Rect;
+    mouseScreenPosition: Point;
 }

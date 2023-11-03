@@ -33,6 +33,20 @@ export class ViewportService {
   public zoom$: Observable<number> = this.state.select('zoom');
   public position$: Observable<Point> = this.state.select('position');
 
+  public mouseTooltip$: Observable<{
+    label: string,
+    screenMousePostion: Point
+  }> = this.state.select(
+    ['position', 'mouseScreenPosition', 'zoom'],
+    ({ position, mouseScreenPosition, zoom }) => {
+      const { x, y } = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
+      console.log(mouseScreenPosition, { x, y })
+      return {
+        label: `(${x}, ${y})`,
+        screenMousePostion: mouseScreenPosition
+      }
+    });
+
   public yAxis$: Observable<number> = this.state.select(
     ['position', 'zoom'],
     ({ position, zoom }) => {
@@ -58,7 +72,7 @@ export class ViewportService {
         do {
           step *= 10;
           noOfLines = Math.floor(viewportWidth / zoom / step);
-        } while (noOfLines > 30);
+        } while (noOfLines > 50);
         return step;
       }
 
@@ -151,6 +165,10 @@ export class ViewportService {
     this.state.connect('viewportSize', viewportSize$);
   }
 
+  public connectMousemove(mouseMove$: Observable<MouseEvent>): void {
+    this.state.connect('mouseScreenPosition', mouseMove$.pipe(map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))));
+  }
+
   public connectZoom(zoomChange$: Observable<number>): void {
     this.state.connect(zoomChange$, ({ zoom, position, viewportSize }, changeDirection) => {
       const mouseScreenPosition: Point = { x: viewportSize.width / 2, y: viewportSize.height / 2 };
@@ -173,7 +191,7 @@ export class ViewportService {
 
     const wheelPosition = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
     const newWheelPosition = this.mouseScreenToReal(position, mouseScreenPosition, newZoom);
-    const diff: Vector = distance(newWheelPosition, wheelPosition);
+    const diff: Vector = distance(wheelPosition, newWheelPosition);
     const newPosition = translatePoint(position, diff);
 
     return {
@@ -185,8 +203,8 @@ export class ViewportService {
 
   private mouseScreenToReal(realPosition: Point, mouseScreenPosition: Point, scale: number): Point {
     return {
-      x: realPosition.x - mouseScreenPosition.x / scale,
-      y: realPosition.y - mouseScreenPosition.y / scale,
+      x: realPosition.x + mouseScreenPosition.x / scale,
+      y: realPosition.y + mouseScreenPosition.y / scale,
     }
   }
 

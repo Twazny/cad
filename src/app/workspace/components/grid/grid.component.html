@@ -1,5 +1,6 @@
 <svg preserveAspectRatio="xMidYMid meet" appResize appDrag (wheel)="wheel$.next($event)" (resize)="resize$.next($event)"
-  (dragEnd)="dragEnd$.next()" (drag)="drag$.next($event)">
+  (dragEnd)="dragEnd$.next()" (drag)="drag$.next($event)" (click)="click$.next($event)"
+  (mousemove)="mousemove$.next($event)">
 
   <line *ngFor="let xline of gridLinesVertical$ | async" stroke-width="1" [attr.x1]="xline" class="grid"
     [attr.x2]="xline" [attr.y1]="0" [attr.y2]="'100%'"></line>
@@ -18,7 +19,9 @@
 
   <text x="10" y="50">{{ zoom$ | async }}</text>
 
-  <rect></rect>
+  <text stroke="white" *ngIf="mouseTooltip$ | async as tooltip" [attr.x]="tooltip.screenMousePostion.x"
+    [attr.y]="tooltip.screenMousePostion.y">{{ tooltip.label }}</text>
+
 </svg>
 
 <app-scale [scale]="zoom$ | async" (scaleChange)="scaleChange$.next($event)"></app-scale>

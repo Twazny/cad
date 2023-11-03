@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { Observable, Subject, debounceTime, map, mergeScan, of, scan, shareReplay, startWith, switchMap, switchScan, takeUntil, tap, throttleTime } from 'rxjs';
 import { Point } from '../../../geometry/models/point';
 import { ResizeDirective } from '../../directives/resize/resize.directive';
@@ -12,7 +12,7 @@ import { ScaleComponent } from '../scale/scale.component';
 @Component({
   selector: 'app-grid',
   standalone: true,
-  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent],
+  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf],
   templateUrl: './grid.component.html',
   styleUrls: ['./grid.component.scss'],
   providers: [ViewportService]
@@ -26,6 +26,7 @@ export class GridComponent implements OnInit {
   protected readonly zoom$ = this.viewportService.zoom$;
   protected readonly xAxis$ = this.viewportService.xAxis$;
   protected readonly yAxis$ = this.viewportService.yAxis$;
+  protected readonly mouseTooltip$ = this.viewportService.mouseTooltip$;
 
   protected readonly gridLinesVertical$ = this.viewportService.gridLines$.pipe(map((lines) => lines.vertical));
   protected readonly gridLinesHorizontal$ = this.viewportService.gridLines$.pipe(map((lines) => lines.horizontal));;
@@ -35,6 +36,8 @@ export class GridComponent implements OnInit {
   resize$: Subject<Rect> = new Subject();
   wheel$: Subject<WheelEvent> = new Subject();
   scaleChange$: Subject<number> = new Subject();
+  click$: Subject<MouseEvent> = new Subject();
+  mousemove$: Subject<MouseEvent> = new Subject();
 
   public ngOnInit(): void {
     this.viewportService.connectResize(this.resize$);
@@ -42,5 +45,6 @@ export class GridComponent implements OnInit {
     this.viewportService.connectDrag(this.drag$);
     this.viewportService.connectDragEnd(this.dragEnd$);
     this.viewportService.connectZoom(this.scaleChange$);
+    this.viewportService.connectMousemove(this.mousemove$);
   }
 }
