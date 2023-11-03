@@ -22,6 +22,9 @@
   <text stroke="white" *ngIf="mouseTooltip$ | async as tooltip" [attr.x]="tooltip.screenMousePostion.x"
     [attr.y]="tooltip.screenMousePostion.y">{{ tooltip.label }}</text>
 
+  <line *ngIf="draftSegment$ | async as draft" stroke-width="1" [attr.x1]="draft[0].x" class="segment"
+    [attr.x2]="draft[1].x" [attr.y1]="draft[0].y" [attr.y2]="draft[1].y"></line>
+
 </svg>
 
 <app-scale [scale]="zoom$ | async" (scaleChange)="scaleChange$.next($event)"></app-scale>

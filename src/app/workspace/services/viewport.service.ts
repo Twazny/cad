@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Point, scalePoint, translatePoint } from "../../geometry/models/point";
+import { Point, isSamePoint, scalePoint, translatePoint } from "../../geometry/models/point";
 import { BehaviorSubject, Observable, Subject, combineLatest, map, scan, startWith } from "rxjs";
 import { ObjectsService } from "./objects.service";
 import { Rect } from "../../geometry/models/rect";
@@ -33,6 +33,8 @@ export class ViewportService {
   public zoom$: Observable<number> = this.state.select('zoom');
   public position$: Observable<Point> = this.state.select('position');
 
+  public draftSegment$: Observable<Segment | null> = this.state.select('draftSegment');
+
   public mouseTooltip$: Observable<{
     label: string,
     screenMousePostion: Point
@@ -40,24 +42,26 @@ export class ViewportService {
     ['position', 'mouseScreenPosition', 'zoom'],
     ({ position, mouseScreenPosition, zoom }) => {
       const { x, y } = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
-      console.log(mouseScreenPosition, { x, y })
       return {
         label: `(${x}, ${y})`,
         screenMousePostion: mouseScreenPosition
-      }
-    });
+      };
+    }
+  );
 
   public yAxis$: Observable<number> = this.state.select(
     ['position', 'zoom'],
     ({ position, zoom }) => {
       return -position.y * zoom;
-    })
+    }
+  );
 
   public xAxis$: Observable<number> = this.state.select(
     ['position', 'zoom'],
     ({ position, zoom }) => {
       return -position.x * zoom;
-    })
+    }
+  );
 
   public gridLines$: Observable<{
     vertical: number[],
@@ -108,7 +112,7 @@ export class ViewportService {
         horizontal: getLines(horizontalLinesNo, firstHorizontalLine, position.y, step),
       }
     }
-  )
+  );
 
   public viewportObjects$: Observable<Segment[]> = this.state.select(
     ['zoom', 'position', 'viewportSize', 'objects'],
@@ -157,16 +161,32 @@ export class ViewportService {
     });
   }
 
-  public connectDragEnd(dragEnd$: Observable<void>): void {
-    this.state.connect('lastPosition', dragEnd$, ({ position }) => position);
-  }
-
   public connectResize(viewportSize$: Observable<Rect>): void {
     this.state.connect('viewportSize', viewportSize$);
   }
 
   public connectMousemove(mouseMove$: Observable<MouseEvent>): void {
-    this.state.connect('mouseScreenPosition', mouseMove$.pipe(map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))));
+    this.state.connect(
+      mouseMove$.pipe(map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))),
+      ({ draftSegment }, mouseScreenPosition) => ({
+        mouseScreenPosition,
+        draftSegment: draftSegment ? [draftSegment[0], mouseScreenPosition] : null
+      })
+    );
+  }
+
+  public connectClick(mouseClick$: Observable<MouseEvent>): void {
+    this.state.connect(mouseClick$, ({ draftSegment, mouseScreenPosition, position, lastPosition }) => {
+      if (isSamePoint(position, lastPosition)) {
+        if (!draftSegment && isSamePoint(position, lastPosition)) {
+          return { draftSegment: [mouseScreenPosition, mouseScreenPosition] }
+        } else {
+          return { draftSegment: null };
+        }
+      } else {
+        return { lastPosition: position };
+      }
+    });
   }
 
   public connectZoom(zoomChange$: Observable<number>): void {

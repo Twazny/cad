@@ -27,6 +27,7 @@ export class GridComponent implements OnInit {
   protected readonly xAxis$ = this.viewportService.xAxis$;
   protected readonly yAxis$ = this.viewportService.yAxis$;
   protected readonly mouseTooltip$ = this.viewportService.mouseTooltip$;
+  protected readonly draftSegment$ = this.viewportService.draftSegment$;
 
   protected readonly gridLinesVertical$ = this.viewportService.gridLines$.pipe(map((lines) => lines.vertical));
   protected readonly gridLinesHorizontal$ = this.viewportService.gridLines$.pipe(map((lines) => lines.horizontal));;
@@ -43,8 +44,8 @@ export class GridComponent implements OnInit {
     this.viewportService.connectResize(this.resize$);
     this.viewportService.connectWheel(this.wheel$);
     this.viewportService.connectDrag(this.drag$);
-    this.viewportService.connectDragEnd(this.dragEnd$);
     this.viewportService.connectZoom(this.scaleChange$);
     this.viewportService.connectMousemove(this.mousemove$);
+    this.viewportService.connectClick(this.click$);
   }
 }
