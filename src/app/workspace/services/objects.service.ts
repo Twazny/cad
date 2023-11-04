@@ -8,16 +8,16 @@ import { PositionedRect } from "../../geometry/models/positioned-rect";
     providedIn: 'root'
 })
 export class ObjectsService {
-    
+
     private _segments$ = new BehaviorSubject<Segment[]>([
-        [{x: 10, y: 19}, {x: 68, y: 44}],
-        [{x: 68, y: 44}, {x: 80, y: 122}],
-        [{x: 80, y: 122}, {x: 10, y: 19}],
-        [{x: -340, y: -133}, {x: 400, y: -150}],
-        [{x: -160, y: 50}, {x: -110, y: 50}],
-        [{x: -160, y: 50}, {x: -160, y: 96}],
-        [{x: -160, y: 96}, {x: -110, y: 96}],
-        [{x: -110, y: 96}, {x: -110, y: 50}],
+        [{ x: 10, y: 19 }, { x: 68, y: 44 }],
+        [{ x: 68, y: 44 }, { x: 80, y: 122 }],
+        [{ x: 80, y: 122 }, { x: 10, y: 19 }],
+        [{ x: -340, y: -133 }, { x: 400, y: -150 }],
+        [{ x: -160, y: 50 }, { x: -110, y: 50 }],
+        [{ x: -160, y: 50 }, { x: -160, y: 96 }],
+        [{ x: -160, y: 96 }, { x: -110, y: 96 }],
+        [{ x: -110, y: 96 }, { x: -110, y: 50 }],
     ]);
 
     public segments$ = this._segments$.asObservable();
@@ -31,9 +31,9 @@ export class ObjectsService {
 
     public boundingRect$: Observable<PositionedRect> = this.points$.pipe(
         map((points) => points.reduce((acc, point) => {
-            const {x: lowestX, y: lowestY } = acc[0];
-            const {x: highestX, y: highestY } = acc[1];
-            const {x: currentX, y: currentY } = point;
+            const { x: lowestX, y: lowestY } = acc[0];
+            const { x: highestX, y: highestY } = acc[1];
+            const { x: currentX, y: currentY } = point;
             acc[0] = {
                 x: Math.min(lowestX, currentX),
                 y: Math.min(lowestY, currentY)
@@ -43,7 +43,11 @@ export class ObjectsService {
                 y: Math.max(highestY, currentY)
             };
             return acc;
-        }, [{x: 0, y: 0}, {x: 0, y:0}] as Segment)),
+        }, [{ x: 0, y: 0 }, { x: 0, y: 0 }] as Segment)),
         map((segment) => segmentToRect(segment)),
     );
+
+    public addSegment(segment: Segment) {
+        this._segments$.next([...this._segments$.getValue(), segment]);
+    }
 }

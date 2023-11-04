@@ -187,10 +187,11 @@ export class ViewportService {
   public connectClick(mouseClick$: Observable<MouseEvent>): void {
     this.state.connect(mouseClick$, ({ draftSegment, mouseScreenPosition, position, lastPosition, zoom }) => {
       if (isSamePoint(position, lastPosition)) {
-        if (!draftSegment && isSamePoint(position, lastPosition)) {
+        if (!draftSegment) {
           const mouseReal = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
           return { draftSegment: [mouseReal, mouseReal] }
         } else {
+          this.objectService.addSegment(draftSegment);
           return { draftSegment: null };
         }
       } else {
