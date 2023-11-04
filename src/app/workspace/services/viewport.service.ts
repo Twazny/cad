@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Point, isSamePoint, scalePoint, translatePoint } from "../../geometry/models/point";
+import { Point, invertPoint, isSamePoint, scalePoint, translatePoint } from "../../geometry/models/point";
 import { BehaviorSubject, Observable, Subject, combineLatest, map, scan, startWith } from "rxjs";
 import { ObjectsService } from "./objects.service";
 import { Rect } from "../../geometry/models/rect";
@@ -33,7 +33,13 @@ export class ViewportService {
   public zoom$: Observable<number> = this.state.select('zoom');
   public position$: Observable<Point> = this.state.select('position');
 
-  public draftSegment$: Observable<Segment | null> = this.state.select('draftSegment');
+  public draftSegment$: Observable<Segment | null> = this.state.select(
+    ['position', 'zoom', 'draftSegment'],
+    ({ position, zoom, draftSegment }) => {
+      const translateVector = invertPoint(position);
+      return draftSegment ? scaleSegment(translateSegment(draftSegment, translateVector), zoom) : null;
+    }
+  );
 
   public mouseTooltip$: Observable<{
     label: string,
@@ -123,7 +129,7 @@ export class ViewportService {
         height: viewportSize.height
       };
 
-      const translateVector = { x: -position.x, y: -position.y };
+      const translateVector = invertPoint(position);
 
       let visible: Segment[] = [];
       let notVisible: Segment[] = [];
@@ -168,18 +174,22 @@ export class ViewportService {
   public connectMousemove(mouseMove$: Observable<MouseEvent>): void {
     this.state.connect(
       mouseMove$.pipe(map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))),
-      ({ draftSegment }, mouseScreenPosition) => ({
-        mouseScreenPosition,
-        draftSegment: draftSegment ? [draftSegment[0], mouseScreenPosition] : null
-      })
+      ({ draftSegment, position, zoom }, mouseScreenPosition) => {
+        const mouseReal = this.mouseScreenToReal(position, mouseScreenPosition, zoom)
+        return ({
+          mouseScreenPosition,
+          draftSegment: draftSegment ? [draftSegment[0], mouseReal] : null
+        })
+      }
     );
   }
 
   public connectClick(mouseClick$: Observable<MouseEvent>): void {
-    this.state.connect(mouseClick$, ({ draftSegment, mouseScreenPosition, position, lastPosition }) => {
+    this.state.connect(mouseClick$, ({ draftSegment, mouseScreenPosition, position, lastPosition, zoom }) => {
       if (isSamePoint(position, lastPosition)) {
         if (!draftSegment && isSamePoint(position, lastPosition)) {
-          return { draftSegment: [mouseScreenPosition, mouseScreenPosition] }
+          const mouseReal = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
+          return { draftSegment: [mouseReal, mouseReal] }
         } else {
           return { draftSegment: null };
         }

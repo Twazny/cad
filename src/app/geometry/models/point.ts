@@ -22,3 +22,10 @@ export function translatePoint(point: Point, vector: Vector): Point {
 export function isSamePoint(point1: Point, point2: Point): boolean {
     return point1.x === point2.x && point1.y === point2.y;
 }
+
+export function invertPoint(point: Point): Point {
+    return {
+        x: -point.x,
+        y: -point.y
+    };
+}
