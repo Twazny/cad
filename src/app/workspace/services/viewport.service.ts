@@ -70,6 +70,8 @@ export class ViewportService {
   );
 
   public gridLines$: Observable<{
+    step: number;
+    stepWidth: number;
     vertical: number[],
     horizontal: number[]
   }> = this.state.select(
@@ -114,6 +116,8 @@ export class ViewportService {
       };
 
       return {
+        step: step,
+        stepWidth: step * zoom,
         vertical: getLines(verticalLinesNo, firstVerticalLine, position.x, step),
         horizontal: getLines(horizontalLinesNo, firstHorizontalLine, position.y, step),
       }

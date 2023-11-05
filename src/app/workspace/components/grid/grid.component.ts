@@ -8,11 +8,12 @@ import { DragDirective } from '../../directives/drag/drag.directive';
 import { Vector } from '../../../geometry/models/vector';
 import { Rect } from 'src/app/geometry/models/rect';
 import { ScaleComponent } from '../scale/scale.component';
+import { BarScaleComponent } from '../bar-scale/bar-scale.component';
 
 @Component({
   selector: 'app-grid',
   standalone: true,
-  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf],
+  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent],
   templateUrl: './grid.component.html',
   styleUrls: ['./grid.component.scss'],
   providers: [ViewportService]
@@ -30,7 +31,8 @@ export class GridComponent implements OnInit {
   protected readonly draftSegment$ = this.viewportService.draftSegment$;
 
   protected readonly gridLinesVertical$ = this.viewportService.gridLines$.pipe(map((lines) => lines.vertical));
-  protected readonly gridLinesHorizontal$ = this.viewportService.gridLines$.pipe(map((lines) => lines.horizontal));;
+  protected readonly gridLinesHorizontal$ = this.viewportService.gridLines$.pipe(map((lines) => lines.horizontal));
+  protected readonly barScale$ = this.viewportService.gridLines$.pipe(map(({ step, stepWidth }) => ({ step, stepWidth })));
 
   dragEnd$: Subject<void> = new Subject();
   drag$: Subject<Vector> = new Subject();

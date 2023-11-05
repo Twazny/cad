@@ -28,3 +28,5 @@
 </svg>
 
 <app-scale [scale]="zoom$ | async" (scaleChange)="scaleChange$.next($event)"></app-scale>
+<app-bar-scale *ngIf="barScale$ | async as barScale" [step]="barScale.step"
+  [width]="barScale.stepWidth"></app-bar-scale>
