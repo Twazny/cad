@@ -29,6 +29,7 @@ export class ViewportService {
   private static readonly INITIAL_ZOOM: number = 1;
   private static readonly MAKS_ZOOM: number = 10;
   private static readonly MIN_ZOOM: number = 0.1;
+  private static readonly MAKS_GRID_LINES: number = 100;
 
   public zoom$: Observable<number> = this.state.select('zoom');
   public position$: Observable<Point> = this.state.select('position');
@@ -78,48 +79,15 @@ export class ViewportService {
     ['position', 'zoom', 'viewportSize'],
     ({ position, zoom, viewportSize }) => {
 
-      const getStep = (viewportWidth: number, zoom: number): number => {
-        let step = 1;
-        let noOfLines = viewportWidth;
-        do {
-          step *= 10;
-          noOfLines = Math.floor(viewportWidth / zoom / step);
-        } while (noOfLines > 50);
-        return step;
-      }
-
-      const step: number = getStep(viewportSize.width, zoom);
+      const step: number = this.getStep(viewportSize.width, zoom);
       const verticalLinesNo = Math.ceil(viewportSize.width / zoom / step);
       const horizontalLinesNo = Math.ceil(viewportSize.height / zoom / step);
-
-      const getFirstLinePos = (pos: number): number => {
-        if (pos < 0) {
-          return pos - (pos % step);
-        } else if (pos > 0) {
-          return pos + (step - pos % step)
-        } else {
-          return step;
-        }
-      };
-
-      const firstVerticalLine = getFirstLinePos(position.x);
-      const firstHorizontalLine = getFirstLinePos(position.y);
-
-      const getLines = (linesCount: number, firstLinePos: number, pos: number, step: number) => {
-        return Array(linesCount).fill(null).reduce((acc, _, i) => {
-          const linePos = (firstLinePos + step * i) - pos;
-          if (linePos !== pos * -1) {
-            acc.push(linePos * zoom);
-          }
-          return acc;
-        }, []);
-      };
 
       return {
         step: step,
         stepWidth: step * zoom,
-        vertical: getLines(verticalLinesNo, firstVerticalLine, position.x, step),
-        horizontal: getLines(horizontalLinesNo, firstHorizontalLine, position.y, step),
+        vertical: this.getGridLines(verticalLinesNo, position.x, step, zoom),
+        horizontal: this.getGridLines(horizontalLinesNo, position.y, step, zoom),
       }
     }
   );
@@ -254,4 +222,36 @@ export class ViewportService {
       return changeDirection > 0 ? zoomInFactor : zoomInFactor * -1;
     }
   }
+
+  private getStep(viewportWidth: number, zoom: number): number {
+    let step = 1;
+    let linesCount = viewportWidth;
+    do {
+      step *= 10;
+      linesCount = Math.floor(viewportWidth / zoom / step);
+    } while (linesCount > ViewportService.MAKS_GRID_LINES);
+    return step;
+  }
+
+  private getGridLines(linesCount: number, position: number, step: number, scale: number): number[] {
+    const firstLinePos = this.getFirstGridLinePos(position, step);
+
+    return Array(linesCount).fill(null).reduce((acc, _, i) => {
+      const linePos = (firstLinePos + step * i) - position;
+      if (linePos !== position * -1) {
+        acc.push(linePos * scale);
+      }
+      return acc;
+    }, []);
+  };
+
+  private getFirstGridLinePos(position: number, step: number): number {
+    if (position < 0) {
+      return position - (position % step);
+    } else if (position > 0) {
+      return position + (step - position % step)
+    } else {
+      return step;
+    }
+  };
 }
