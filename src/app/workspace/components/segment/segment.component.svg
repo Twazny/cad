@@ -1,0 +1,12 @@
+<svg:g>
+    <svg:line
+        stroke-width="1"
+        stroke="white"
+        [attr.x1]="segment[0].x"
+        class="segment"
+        [attr.x2]="segment[1].x"
+        [attr.y1]="segment[0].y"
+        [attr.y2]="segment[1].y"
+    ></svg:line>
+    <svg:path class="segment-path"  [attr.transform]="rotate" [attr.d]="path" stroke="none" fill="none" stroke-width="0"/>
+</svg:g>

@@ -9,11 +9,12 @@ import { Vector } from '../../../geometry/models/vector';
 import { Rect } from 'src/app/geometry/models/rect';
 import { ScaleComponent } from '../scale/scale.component';
 import { BarScaleComponent } from '../bar-scale/bar-scale.component';
+import { SegmentComponent } from '../segment/segment.component';
 
 @Component({
   selector: 'app-grid',
   standalone: true,
-  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent],
+  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent],
   templateUrl: './grid.component.html',
   styleUrls: ['./grid.component.scss'],
   providers: [ViewportService]
