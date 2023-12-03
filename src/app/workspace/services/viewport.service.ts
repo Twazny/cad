@@ -8,7 +8,7 @@ import { Segment, scaleSegment, translateSegment } from "../../geometry/models/s
 import { containsPoint } from '../../geometry/models/positioned-rect';
 import { rxState } from '@rx-angular/state';
 import { WorkspaceState } from "../models/workspace-state";
-import { Vector, distance } from "src/app/geometry/models/vector";
+import { Vector, getVector } from "src/app/geometry/models/vector";
 
 @Injectable()
 export class ViewportService {
@@ -194,7 +194,7 @@ export class ViewportService {
 
     const wheelPosition = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
     const newWheelPosition = this.mouseScreenToReal(position, mouseScreenPosition, newZoom);
-    const diff: Vector = distance(wheelPosition, newWheelPosition);
+    const diff: Vector = getVector(wheelPosition, newWheelPosition);
     const newPosition = translatePoint(position, diff);
 
     return {
