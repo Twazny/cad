@@ -5,7 +5,6 @@ export interface PositionedRect extends Rect {
     point: Point;
 }
 
-
 export function containsPoint(rect: PositionedRect, point: Point): boolean {
     const firstRectPoint = rect.point;
     const secondRectPoint = {

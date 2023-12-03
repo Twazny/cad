@@ -40,3 +40,10 @@ export function segmentToRect(segment: Segment): PositionedRect {
         height: hrap.y - lrap.y
     };
 }
+
+export function getSegmentLength(segment: Segment): number {
+    const [p1, p2] = segment;
+    const a = p1.x - p2.x;
+    const b = p1.y - p2.y;
+    return Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+}
