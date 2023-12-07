@@ -1,0 +1,39 @@
+@for (xline of xLines; track xline) {
+    <svg:line
+        stroke-width="1"
+        [attr.x1]="xline"
+        class="grid"
+        [attr.x2]="xline"
+        [attr.y1]="0"
+        [attr.y2]="'100%'"
+    ></svg:line>
+}
+
+@for (yline of yLines; track yline) {
+    <svg:line
+        stroke-width="1"
+        [attr.x1]="0"
+        class="grid"
+        [attr.x2]="'100%'"
+        [attr.y1]="yline"
+        [attr.y2]="yline"
+    ></svg:line>
+}
+
+<svg:line
+    stroke-width="1"
+    class="axis"
+    [attr.x1]="xAxis"
+    [attr.x2]="xAxis"
+    [attr.y1]="0"
+    [attr.y2]="'100%'"
+></svg:line>
+
+<svg:line
+    stroke-width="1"
+    class="axis"
+    [attr.y1]="yAxis"
+    [attr.y2]="yAxis"
+    [attr.x1]="0"
+    [attr.x2]="'100%'"
+></svg:line>

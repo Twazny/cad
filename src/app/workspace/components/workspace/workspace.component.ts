@@ -10,11 +10,12 @@ import { Rect } from 'src/app/geometry/models/rect';
 import { ScaleComponent } from '../scale/scale.component';
 import { BarScaleComponent } from '../bar-scale/bar-scale.component';
 import { SegmentComponent } from '../segment/segment.component';
+import { GridComponent } from '../grid/grid.component';
 
 @Component({
   selector: 'app-workspace',
   standalone: true,
-  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent],
+  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent, GridComponent],
   templateUrl: './workspace.component.html',
   styleUrls: ['./workspace.component.scss'],
   providers: [ViewportService]

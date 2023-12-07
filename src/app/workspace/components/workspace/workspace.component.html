@@ -9,41 +9,13 @@
   (click)="click$.next($event)"
   (mousemove)="mousemove$.next($event)"
 >
-  <line
-    *ngFor="let xline of gridLinesVertical$ | async"
-    stroke-width="1"
-    [attr.x1]="xline"
-    class="grid"
-    [attr.x2]="xline"
-    [attr.y1]="0"
-    [attr.y2]="'100%'"
-  ></line>
-  <line
-    *ngFor="let yline of gridLinesHorizontal$ | async"
-    stroke-width="1"
-    [attr.x1]="0"
-    class="grid"
-    [attr.x2]="'100%'"
-    [attr.y1]="yline"
-    [attr.y2]="yline"
-  ></line>
-
-  <line
-    stroke-width="1"
-    class="axis"
-    [attr.x1]="xAxis$ | async"
-    [attr.x2]="xAxis$ | async"
-    [attr.y1]="0"
-    [attr.y2]="'100%'"
-  ></line>
-  <line
-    stroke-width="1"
-    class="axis"
-    [attr.y1]="yAxis$ | async"
-    [attr.y2]="yAxis$ | async"
-    [attr.x1]="0"
-    [attr.x2]="'100%'"
-  ></line>
+  <g
+    app-grid
+    [xAxis]="(xAxis$ | async) || 0"
+    [yAxis]="(yAxis$ | async) || 0"
+    [xLines]="(gridLinesVertical$ | async) || []"
+    [yLines]="(gridLinesHorizontal$ | async) || []"
+  ></g>
 
   <g
     app-segment
@@ -68,8 +40,8 @@
   <line
     *ngIf="draftSegment$ | async as draft"
     stroke-width="1"
-    [attr.x1]="draft[0].x"
     class="segment"
+    [attr.x1]="draft[0].x"
     [attr.x2]="draft[1].x"
     [attr.y1]="draft[0].y"
     [attr.y2]="draft[1].y"
@@ -80,6 +52,7 @@
   [scale]="zoom$ | async"
   (scaleChange)="scaleChange$.next($event)"
 ></app-scale>
+
 <app-bar-scale
   *ngIf="barScale$ | async as barScale"
   [step]="barScale.step"
