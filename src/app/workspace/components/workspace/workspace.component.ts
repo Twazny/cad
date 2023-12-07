@@ -12,14 +12,14 @@ import { BarScaleComponent } from '../bar-scale/bar-scale.component';
 import { SegmentComponent } from '../segment/segment.component';
 
 @Component({
-  selector: 'app-grid',
+  selector: 'app-workspace',
   standalone: true,
   imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent],
-  templateUrl: './grid.component.html',
-  styleUrls: ['./grid.component.scss'],
+  templateUrl: './workspace.component.html',
+  styleUrls: ['./workspace.component.scss'],
   providers: [ViewportService]
 })
-export class GridComponent implements OnInit {
+export class WorkspaceComponent implements OnInit {
 
   private readonly viewportService: ViewportService = inject(ViewportService);
 
