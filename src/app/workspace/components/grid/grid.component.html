@@ -49,6 +49,7 @@
     app-segment
     *ngFor="let segment of objects$ | async"
     [segment]="segment"
+    [selected]="false"
   ></g>
 
   <text x="10" y="30">{{ position$ | async | json }}</text>
