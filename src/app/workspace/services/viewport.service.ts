@@ -1,7 +1,6 @@
 import { Injectable, inject } from "@angular/core";
-import { Point, invertPoint, isSamePoint, scalePoint, translatePoint } from "../../geometry/models/point";
-import { BehaviorSubject, Observable, Subject, combineLatest, map, scan, startWith } from "rxjs";
-import { ObjectsService } from "./objects.service";
+import { Point, invertPoint, isSamePoint, translatePoint } from "../../geometry/models/point";
+import { Observable, map } from "rxjs";
 import { Rect } from "../../geometry/models/rect";
 import { PositionedRect } from "../../geometry/models/positioned-rect";
 import { Segment, scaleSegment, translateSegment } from "../../geometry/models/segment";
@@ -9,11 +8,15 @@ import { containsPoint } from '../../geometry/models/positioned-rect';
 import { rxState } from '@rx-angular/state';
 import { WorkspaceState } from "../models/workspace-state";
 import { Vector, getVector } from "src/app/geometry/models/vector";
+import { Store } from "@ngrx/store";
+import { selectAllObjects } from "../store/object.selectors";
+import { v4 as uuidv4 } from 'uuid';
+import * as ObjectActions from '../store/object.actions';
 
 @Injectable()
 export class ViewportService {
 
-  private readonly objectService: ObjectsService = inject(ObjectsService);
+  private readonly store: Store = inject(Store);
 
   private readonly state = rxState<WorkspaceState>(({ set, connect }) => {
     set({
@@ -22,7 +25,7 @@ export class ViewportService {
       position: ViewportService.INITIAL_POSITION,
       objects: []
     });
-    connect('objects', this.objectService.segments$);
+    connect('objects', this.store.select(selectAllObjects));
   });
 
   private static readonly INITIAL_POSITION: Point = { x: 0, y: 0 };
@@ -107,7 +110,7 @@ export class ViewportService {
       let notVisible: Segment[] = [];
       let intersected: Segment[] = [];
 
-      objects.map((segment: Segment) => {
+      objects.map(({geometry: segment}) => {
         return scaleSegment(translateSegment(segment, translateVector), zoom);
       }).forEach((segment: Segment) => {
         const firstPoint = containsPoint(visibleRect, segment[0]);
@@ -163,7 +166,11 @@ export class ViewportService {
           const mouseReal = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
           return { draftSegment: [mouseReal, mouseReal] }
         } else {
-          this.objectService.addSegment(draftSegment);
+          const object = {
+            id: uuidv4(),
+            geometry: draftSegment
+          };
+          this.store.dispatch(ObjectActions.addObject({object}));          
           return { draftSegment: null };
         }
       } else {

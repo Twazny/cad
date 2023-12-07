@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { WorkspaceComponent } from './workspace/workspace.component';
 import { StoreModule } from '@ngrx/store';
+import { objectReducer } from './workspace/store/object.reducer';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,7 @@ import { StoreModule } from '@ngrx/store';
     BrowserModule,
     AppRoutingModule,
     WorkspaceComponent,
-    StoreModule.forRoot({}, {})
+    StoreModule.forRoot({objects: objectReducer}, {})
   ],
   providers: [],
   bootstrap: [AppComponent]
