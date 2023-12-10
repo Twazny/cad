@@ -1,11 +1,8 @@
 :host {
     display: flex;
     justify-content: space-between;
-    width: 80px;
+    align-items: center;
+    width: 130px;
     background-color: white;
     padding: 0.5rem;
-}
-
-button {
-    border: none;
 }

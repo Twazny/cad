@@ -1,3 +1,7 @@
-<button (click)="scaleChange.emit(-1)">-</button>
+<button app-button-icon (click)="scaleChange.emit(-1)">
+  <app-icon>zoom_out</app-icon>
+</button>
 {{ scale }}
-<button (click)="scaleChange.emit(1)">+</button>
+<button app-button-icon (click)="scaleChange.emit(1)">
+  <app-icon>zoom_in</app-icon>
+</button>
