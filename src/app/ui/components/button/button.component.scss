@@ -1,6 +1,6 @@
 :host {
     $background: #e1e1e1;
-    $outline: #18b5fd;
+    $outline: #4fc7ff;
     font-family: inherit;
     border: none;
     background-color: $background;
@@ -17,10 +17,10 @@
 
     &:focus-visible {
         outline: 1px solid $outline;
-        outline-offset: 4px;
+        outline-offset: 3px;
     }
 
-    &:active {
+    &:active, &[aria-pressed=true], &[aria-checked=true] {
         background-color: $outline;
     }
 
