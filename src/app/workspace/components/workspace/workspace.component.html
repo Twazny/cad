@@ -48,6 +48,8 @@
   ></line>
 </svg>
 
+<app-toolbar></app-toolbar>
+
 <app-scale
   [scale]="zoom$ | async"
   (scaleChange)="scaleChange$.next($event)"

@@ -11,11 +11,12 @@ import { ScaleComponent } from '../scale/scale.component';
 import { BarScaleComponent } from '../bar-scale/bar-scale.component';
 import { SegmentComponent } from '../segment/segment.component';
 import { GridComponent } from '../grid/grid.component';
+import { ToolbarComponent } from '../toolbar/toolbar.component';
 
 @Component({
   selector: 'app-workspace',
   standalone: true,
-  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent, GridComponent],
+  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent, GridComponent, ToolbarComponent],
   templateUrl: './workspace.component.html',
   styleUrls: ['./workspace.component.scss'],
   providers: [ViewportService]
