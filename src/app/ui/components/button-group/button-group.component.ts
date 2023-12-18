@@ -9,6 +9,9 @@ import { NgTemplateOutlet } from "@angular/common";
     styleUrl: 'button-group.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [ButtonGroupOptionDirective, NgTemplateOutlet],
+    host: {
+        'role': 'group'
+    },
     standalone: true
 })
 export class ButtonGroupComponent<T> {
