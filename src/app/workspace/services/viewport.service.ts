@@ -12,6 +12,7 @@ import { Store } from "@ngrx/store";
 import { selectAllObjects } from "../store/object.selectors";
 import { v4 as uuidv4 } from 'uuid';
 import * as ObjectActions from '../store/object.actions';
+import { Command } from "../models/command.enum";
 
 @Injectable()
 export class ViewportService {
@@ -23,7 +24,8 @@ export class ViewportService {
       zoom: ViewportService.INITIAL_ZOOM,
       lastPosition: ViewportService.INITIAL_POSITION,
       position: ViewportService.INITIAL_POSITION,
-      objects: []
+      objects: [],
+      mainCommand: Command.SELECT
     });
     connect('objects', this.store.select(selectAllObjects));
   });
@@ -36,6 +38,7 @@ export class ViewportService {
 
   public zoom$: Observable<number> = this.state.select('zoom');
   public position$: Observable<Point> = this.state.select('position');
+  public mainCommand$: Observable<Command> = this.state.select('mainCommand');
 
   public draftSegment$: Observable<Segment | null> = this.state.select(
     ['position', 'zoom', 'draftSegment'],
@@ -110,7 +113,7 @@ export class ViewportService {
       let notVisible: Segment[] = [];
       let intersected: Segment[] = [];
 
-      objects.map(({geometry: segment}) => {
+      objects.map(({ geometry: segment }) => {
         return scaleSegment(translateSegment(segment, translateVector), zoom);
       }).forEach((segment: Segment) => {
         const firstPoint = containsPoint(visibleRect, segment[0]);
@@ -170,7 +173,7 @@ export class ViewportService {
             id: uuidv4(),
             geometry: draftSegment
           };
-          this.store.dispatch(ObjectActions.addObject({object}));          
+          this.store.dispatch(ObjectActions.addObject({ object }));
           return { draftSegment: null };
         }
       } else {
@@ -193,6 +196,10 @@ export class ViewportService {
       const mouseScreenPosition: Point = { x: clientX, y: clientY };
       return this.handleZoomChange(zoom, position, mouseScreenPosition, deltaY);
     })
+  }
+
+  public connectMainCommand(command$: Observable<Command>): void {
+    this.state.connect('mainCommand', command$);
   }
 
   private handleZoomChange(zoom: number, position: Point, mouseScreenPosition: Point, changeDirection: number): Pick<WorkspaceState, 'zoom' | 'position' | 'lastPosition'> {

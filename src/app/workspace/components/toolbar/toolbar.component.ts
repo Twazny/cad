@@ -1,14 +1,25 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, inject } from "@angular/core";
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { ButtonComponent, ButtonGroupComponent, IconComponent, ButtonGroupOptionDirective } from "src/app/ui/components";
+import { ViewportService } from "../../services/viewport.service";
+import { Command } from "../../models/command.enum";
 
 @Component({
     selector: 'app-toolbar',
     templateUrl: 'toolbar.component.html',
     styleUrl: 'toolbar.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ButtonComponent, ButtonGroupComponent, IconComponent, ButtonGroupOptionDirective],
+    imports: [ButtonComponent, ButtonGroupComponent, IconComponent, ButtonGroupOptionDirective, ReactiveFormsModule],
     standalone: true
 })
-export class ToolbarComponent {
+export class ToolbarComponent implements OnInit {
+    protected readonly Command = Command;
+    protected readonly modeControl = new FormControl(Command.SELECT, { nonNullable: true });
 
+    private readonly viewportService = inject(ViewportService);
+
+    public ngOnInit(): void {
+        this.viewportService.mainCommand$.subscribe((command) => this.modeControl.patchValue(command));
+        this.viewportService.connectMainCommand(this.modeControl.valueChanges);
+    }
 }
