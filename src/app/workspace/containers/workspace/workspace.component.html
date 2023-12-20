@@ -12,9 +12,7 @@
   <text x="10" y="30">{{ position$ | async | json }}</text>
 
   @if (mouseTooltip$ | async; as tooltip) {
-  <text class="tooltip" [attr.x]="tooltip.screenMousePostion.x" [attr.y]="tooltip.screenMousePostion.y">
-    {{ tooltip.label }}
-  </text>
+  <g app-cursor-tooltip [cursorData]="tooltip"></g>
   }
 
   @if (draftSegment$ | async; as draft) {

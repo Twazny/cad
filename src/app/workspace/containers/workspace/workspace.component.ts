@@ -1,22 +1,16 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
-import { Observable, Subject, debounceTime, map, mergeScan, of, scan, shareReplay, startWith, switchMap, switchScan, takeUntil, tap, throttleTime } from 'rxjs';
-import { Point } from '../../../geometry/models/point';
+import { Subject, map } from 'rxjs';
 import { ResizeDirective } from '../../directives/resize/resize.directive';
 import { WorkspaceStateService } from '../../services/workspace-state.service';
 import { DragDirective } from '../../directives/drag/drag.directive';
-import { Vector } from '../../../geometry/models/vector';
-import { Rect } from 'src/app/geometry/models/rect';
-import { ScaleComponent } from '../scale/scale.component';
-import { BarScaleComponent } from '../bar-scale/bar-scale.component';
-import { SegmentComponent } from '../segment/segment.component';
-import { GridComponent } from '../grid/grid.component';
-import { ToolbarComponent } from '../toolbar/toolbar.component';
+import { Vector, Rect } from '../../../geometry/models';
+import { ScaleComponent, BarScaleComponent, SegmentComponent, GridComponent, ToolbarComponent, CursorTooltipComponent } from '../../components';
 
 @Component({
   selector: 'app-workspace',
   standalone: true,
-  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent, GridComponent, ToolbarComponent],
+  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent, GridComponent, ToolbarComponent, CursorTooltipComponent],
   templateUrl: './workspace.component.html',
   styleUrls: ['./workspace.component.scss'],
   providers: [WorkspaceStateService]

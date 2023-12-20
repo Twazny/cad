@@ -1,9 +1,9 @@
 import { EntityAdapter, EntityState, createEntityAdapter } from "@ngrx/entity";
-import { WorkspaceObject } from "../models/workspace-object";
+import { WorkspaceObject } from "../models";
 import { createReducer, on } from "@ngrx/store";
 import * as ObjectActions from './object.actions';
 
-export interface State extends EntityState<WorkspaceObject> {}
+export interface State extends EntityState<WorkspaceObject> { }
 
 export const adapter: EntityAdapter<WorkspaceObject> = createEntityAdapter<WorkspaceObject>({
     selectId: (object: WorkspaceObject) => object.id

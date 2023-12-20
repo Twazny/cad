@@ -1,18 +1,13 @@
 import { Injectable, inject } from "@angular/core";
-import { Point, invertPoint, isSamePoint, translatePoint } from "../../geometry/models/point";
 import { Observable, map } from "rxjs";
-import { Rect } from "../../geometry/models/rect";
-import { PositionedRect } from "../../geometry/models/positioned-rect";
-import { Segment, scaleSegment, segmentToRect, translateSegment } from "../../geometry/models/segment";
 import { rxState } from '@rx-angular/state';
-import { WorkspaceState } from "../models/workspace-state";
-import { Vector, getVector } from "src/app/geometry/models/vector";
 import { Store } from "@ngrx/store";
-import { selectAllObjects } from "../store/object.selectors";
 import { v4 as uuidv4 } from 'uuid';
+
+import { Rect, PositionedRect, Segment, scaleSegment, segmentToRect, translateSegment, Vector, getVector, Point, invertPoint, isSamePoint, translatePoint } from "../../geometry/models";
+import { CursorData, Command, WorkspaceObject, WorkspaceState } from "../models";
+import { selectAllObjects } from "../store/object.selectors";
 import * as ObjectActions from '../store/object.actions';
-import { Command } from "../models/command.enum";
-import { WorkspaceObject } from "../models/workspace-object";
 
 @Injectable()
 export class WorkspaceStateService {
@@ -63,10 +58,7 @@ export class WorkspaceStateService {
     }
   )
 
-  public mouseTooltip$: Observable<{
-    label: string,
-    screenMousePostion: Point
-  }> = this.state.select(
+  public mouseTooltip$: Observable<CursorData> = this.state.select(
     ['position', 'mouseScreenPosition', 'zoom'],
     ({ position, mouseScreenPosition, zoom }) => {
       const { x, y } = this._mouseScreenToReal(position, mouseScreenPosition, zoom);

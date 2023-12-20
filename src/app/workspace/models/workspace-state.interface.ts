@@ -1,5 +1,5 @@
 import { Point } from "src/app/geometry/models/point";
-import { WorkspaceObject } from "./workspace-object";
+import { WorkspaceObject } from "./workspace-object.interface";
 import { Rect } from "src/app/geometry/models/rect";
 import { Segment } from "src/app/geometry/models/segment";
 import { Command } from "./command.enum";
