@@ -3,7 +3,7 @@ import { CommonModule, NgIf } from '@angular/common';
 import { Observable, Subject, debounceTime, map, mergeScan, of, scan, shareReplay, startWith, switchMap, switchScan, takeUntil, tap, throttleTime } from 'rxjs';
 import { Point } from '../../../geometry/models/point';
 import { ResizeDirective } from '../../directives/resize/resize.directive';
-import { ViewportService } from '../../services/viewport.service';
+import { WorkspaceStateService } from '../../services/workspace-state.service';
 import { DragDirective } from '../../directives/drag/drag.directive';
 import { Vector } from '../../../geometry/models/vector';
 import { Rect } from 'src/app/geometry/models/rect';
@@ -19,11 +19,11 @@ import { ToolbarComponent } from '../toolbar/toolbar.component';
   imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent, GridComponent, ToolbarComponent],
   templateUrl: './workspace.component.html',
   styleUrls: ['./workspace.component.scss'],
-  providers: [ViewportService]
+  providers: [WorkspaceStateService]
 })
 export class WorkspaceComponent implements OnInit {
 
-  private readonly viewportService: ViewportService = inject(ViewportService);
+  private readonly viewportService: WorkspaceStateService = inject(WorkspaceStateService);
 
   protected readonly objects$ = this.viewportService.viewportObjects$;
   protected readonly position$ = this.viewportService.position$;

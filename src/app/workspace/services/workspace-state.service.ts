@@ -15,17 +15,17 @@ import { Command } from "../models/command.enum";
 import { WorkspaceObject } from "../models/workspace-object";
 
 @Injectable()
-export class ViewportService {
+export class WorkspaceStateService {
 
   private readonly store: Store = inject(Store);
 
   private readonly state = rxState<WorkspaceState>(({ set, connect }) => {
     set({
-      zoom: ViewportService.INITIAL_ZOOM,
-      lastPosition: ViewportService.INITIAL_POSITION,
-      position: ViewportService.INITIAL_POSITION,
+      zoom: WorkspaceStateService.INITIAL_ZOOM,
+      lastPosition: WorkspaceStateService.INITIAL_POSITION,
+      position: WorkspaceStateService.INITIAL_POSITION,
       objects: [],
-      mainCommand: ViewportService.INITIAL_COMMAND
+      mainCommand: WorkspaceStateService.INITIAL_COMMAND
     });
     connect('objects', this.store.select(selectAllObjects));
   });
@@ -240,7 +240,7 @@ export class ViewportService {
 
   private _handleZoomChange(zoom: number, position: Point, mouseScreenPosition: Point, changeDirection: number): Pick<WorkspaceState, 'zoom' | 'position' | 'lastPosition'> {
     const factor: number = this._getZoomChange(zoom, changeDirection);
-    const newZoom = Math.min(Math.max(Math.round((zoom + factor) * 100) / 100, ViewportService.MIN_ZOOM), ViewportService.MAKS_ZOOM);
+    const newZoom = Math.min(Math.max(Math.round((zoom + factor) * 100) / 100, WorkspaceStateService.MIN_ZOOM), WorkspaceStateService.MAKS_ZOOM);
 
     const wheelPosition = this._mouseScreenToReal(position, mouseScreenPosition, zoom);
     const newWheelPosition = this._mouseScreenToReal(position, mouseScreenPosition, newZoom);
@@ -279,7 +279,7 @@ export class ViewportService {
     do {
       step *= 10;
       linesCount = Math.floor(viewportWidth / zoom / step);
-    } while (linesCount > ViewportService.MAKS_GRID_LINES);
+    } while (linesCount > WorkspaceStateService.MAKS_GRID_LINES);
     return step;
   }
 
