@@ -13,4 +13,5 @@ export interface WorkspaceState {
     mouseScreenPosition: Point;
     draftSegment: Segment | null;
     mainCommand: Command;
+    selectionArea: Segment | null;
 }

@@ -32,6 +32,7 @@ export class WorkspaceComponent implements OnInit {
   protected readonly yAxis$ = this.viewportService.yAxis$;
   protected readonly mouseTooltip$ = this.viewportService.mouseTooltip$;
   protected readonly draftSegment$ = this.viewportService.draftSegment$;
+  protected readonly selectionArea$ = this.viewportService.selectionArea$;
 
   protected readonly gridLinesVertical$ = this.viewportService.gridLines$.pipe(map((lines) => lines.vertical));
   protected readonly gridLinesHorizontal$ = this.viewportService.gridLines$.pipe(map((lines) => lines.horizontal));

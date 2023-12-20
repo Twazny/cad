@@ -17,7 +17,18 @@ text {
 }
 
 line.segment {
+    stroke-width: 1;
     stroke: white;
+}
+
+.tooltip {
+    stroke: white;
+}
+
+.selection {
+    stroke-width: 1;
+    fill: transparent;
+    stroke: aqua;
 }
 
 app-scale {

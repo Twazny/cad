@@ -3,8 +3,7 @@ import { Point, invertPoint, isSamePoint, translatePoint } from "../../geometry/
 import { Observable, map } from "rxjs";
 import { Rect } from "../../geometry/models/rect";
 import { PositionedRect } from "../../geometry/models/positioned-rect";
-import { Segment, scaleSegment, translateSegment } from "../../geometry/models/segment";
-import { containsPoint } from '../../geometry/models/positioned-rect';
+import { Segment, scaleSegment, segmentToRect, translateSegment } from "../../geometry/models/segment";
 import { rxState } from '@rx-angular/state';
 import { WorkspaceState } from "../models/workspace-state";
 import { Vector, getVector } from "src/app/geometry/models/vector";
@@ -13,6 +12,7 @@ import { selectAllObjects } from "../store/object.selectors";
 import { v4 as uuidv4 } from 'uuid';
 import * as ObjectActions from '../store/object.actions';
 import { Command } from "../models/command.enum";
+import { WorkspaceObject } from "../models/workspace-object";
 
 @Injectable()
 export class ViewportService {
@@ -25,11 +25,12 @@ export class ViewportService {
       lastPosition: ViewportService.INITIAL_POSITION,
       position: ViewportService.INITIAL_POSITION,
       objects: [],
-      mainCommand: Command.SELECT
+      mainCommand: ViewportService.INITIAL_COMMAND
     });
     connect('objects', this.store.select(selectAllObjects));
   });
 
+  private static readonly INITIAL_COMMAND: Command = Command.SELECT;
   private static readonly INITIAL_POSITION: Point = { x: 0, y: 0 };
   private static readonly INITIAL_ZOOM: number = 1;
   private static readonly MAKS_ZOOM: number = 10;
@@ -48,13 +49,27 @@ export class ViewportService {
     }
   );
 
+  public selectionArea$: Observable<PositionedRect | null> = this.state.select(
+    ['position', 'zoom', 'selectionArea'],
+    ({ position, zoom, selectionArea }) => {
+      const translateVector = invertPoint(position);
+      if (selectionArea) {
+        const scaledSegment = scaleSegment(translateSegment(selectionArea, translateVector), zoom);
+        const positionedRect = segmentToRect(scaledSegment);
+        return positionedRect;
+      } else {
+        return null;
+      }
+    }
+  )
+
   public mouseTooltip$: Observable<{
     label: string,
     screenMousePostion: Point
   }> = this.state.select(
     ['position', 'mouseScreenPosition', 'zoom'],
     ({ position, mouseScreenPosition, zoom }) => {
-      const { x, y } = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
+      const { x, y } = this._mouseScreenToReal(position, mouseScreenPosition, zoom);
       return {
         label: `(${x}, ${y})`,
         screenMousePostion: mouseScreenPosition
@@ -85,20 +100,20 @@ export class ViewportService {
     ['position', 'zoom', 'viewportSize'],
     ({ position, zoom, viewportSize }) => {
 
-      const step: number = this.getStep(viewportSize.width, zoom);
+      const step: number = this._getStep(viewportSize.width, zoom);
       const verticalLinesNo = Math.ceil(viewportSize.width / zoom / step);
       const horizontalLinesNo = Math.ceil(viewportSize.height / zoom / step);
 
       return {
         step: step,
         stepWidth: step * zoom,
-        vertical: this.getGridLines(verticalLinesNo, position.x, step, zoom),
-        horizontal: this.getGridLines(horizontalLinesNo, position.y, step, zoom),
+        vertical: this._getGridLines(verticalLinesNo, position.x, step, zoom),
+        horizontal: this._getGridLines(horizontalLinesNo, position.y, step, zoom),
       }
     }
   );
 
-  public viewportObjects$: Observable<Segment[]> = this.state.select(
+  public viewportObjects$: Observable<WorkspaceObject[]> = this.state.select(
     ['zoom', 'position', 'viewportSize', 'objects'],
     ({ zoom, position, viewportSize, objects }) => {
       const visibleRect: PositionedRect = {
@@ -109,32 +124,22 @@ export class ViewportService {
 
       const translateVector = invertPoint(position);
 
-      let visible: Segment[] = [];
-      let notVisible: Segment[] = [];
-      let intersected: Segment[] = [];
+      let visible: WorkspaceObject[] = [];
+      let notVisible: WorkspaceObject[] = [];
+      let intersected: WorkspaceObject[] = [];
 
-      objects.map(({ geometry: segment }) => {
-        return scaleSegment(translateSegment(segment, translateVector), zoom);
-      }).forEach((segment: Segment) => {
-        const firstPoint = containsPoint(visibleRect, segment[0]);
-        const secondPoint = containsPoint(visibleRect, segment[1]);
-
-
-        // TODO: fix case when both point are outside but center should be visible
-        // calculate 2D function ax + b for segments
-        if (firstPoint && secondPoint) {
-          visible.push(segment);
-          return;
-        } else if (firstPoint || secondPoint) {
-          intersected.push(segment);
-          return;
-        } else {
-          notVisible.push(segment);
+      objects.map((object: WorkspaceObject) => {
+        const { geometry: segment } = object;
+        return {
+          ...object,
+          geometry: scaleSegment(translateSegment(segment, translateVector), zoom)
         }
+      }).forEach((object: WorkspaceObject) => {
+        // TODO: calculate visible elements
+        // calculate 2D function ax + b for segments
+        visible.push(object)
       });
 
-      // console.log(notVisible);
-      // TODO: cut intersected;
       return visible.concat(intersected).concat(notVisible);
     }
   );
@@ -152,29 +157,33 @@ export class ViewportService {
   public connectMousemove(mouseMove$: Observable<MouseEvent>): void {
     this.state.connect(
       mouseMove$.pipe(map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))),
-      ({ draftSegment, position, zoom }, mouseScreenPosition) => {
-        const mouseReal = this.mouseScreenToReal(position, mouseScreenPosition, zoom)
+      ({ draftSegment, position, zoom, selectionArea }, mouseScreenPosition) => {
+        const mouseReal = this._mouseScreenToReal(position, mouseScreenPosition, zoom)
         return ({
           mouseScreenPosition,
-          draftSegment: draftSegment ? [draftSegment[0], mouseReal] : null
+          draftSegment: draftSegment ? [draftSegment[0], mouseReal] : null,
+          selectionArea: selectionArea ? [selectionArea[0], mouseReal] : null
         })
       }
     );
   }
 
   public connectClick(mouseClick$: Observable<MouseEvent>): void {
-    this.state.connect(mouseClick$, ({ draftSegment, mouseScreenPosition, position, lastPosition, zoom }) => {
+    this.state.connect(mouseClick$, ({ draftSegment, mouseScreenPosition, position, lastPosition, zoom, mainCommand, selectionArea }) => {
       if (isSamePoint(position, lastPosition)) {
-        if (!draftSegment) {
-          const mouseReal = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
-          return { draftSegment: [mouseReal, mouseReal] }
-        } else {
-          const object = {
-            id: uuidv4(),
-            geometry: draftSegment
-          };
-          this.store.dispatch(ObjectActions.addObject({ object }));
-          return { draftSegment: null };
+        switch (mainCommand) {
+          case Command.LINE:
+            if (!draftSegment) {
+              return this._createDraftSegment({ position, zoom, mouseScreenPosition });
+            } else {
+              return this._saveDraftSegment(draftSegment);
+            }
+          case Command.SELECT:
+            if (!selectionArea) {
+              return this._createSelectionArea({ position, zoom, mouseScreenPosition });
+            } else {
+              return this._applySelectionArea(selectionArea);
+            }
         }
       } else {
         return { lastPosition: position };
@@ -185,7 +194,7 @@ export class ViewportService {
   public connectZoom(zoomChange$: Observable<number>): void {
     this.state.connect(zoomChange$, ({ zoom, position, viewportSize }, changeDirection) => {
       const mouseScreenPosition: Point = { x: viewportSize.width / 2, y: viewportSize.height / 2 };
-      return this.handleZoomChange(zoom, position, mouseScreenPosition, changeDirection);
+      return this._handleZoomChange(zoom, position, mouseScreenPosition, changeDirection);
     })
   }
 
@@ -194,7 +203,7 @@ export class ViewportService {
       event.preventDefault();
       const { deltaY, clientX, clientY } = event;
       const mouseScreenPosition: Point = { x: clientX, y: clientY };
-      return this.handleZoomChange(zoom, position, mouseScreenPosition, deltaY);
+      return this._handleZoomChange(zoom, position, mouseScreenPosition, deltaY);
     })
   }
 
@@ -202,12 +211,39 @@ export class ViewportService {
     this.state.connect('mainCommand', command$);
   }
 
-  private handleZoomChange(zoom: number, position: Point, mouseScreenPosition: Point, changeDirection: number): Pick<WorkspaceState, 'zoom' | 'position' | 'lastPosition'> {
-    const factor: number = this.getZoomChange(zoom, changeDirection);
+  private _createDraftSegment(
+    { position, mouseScreenPosition, zoom }: Pick<WorkspaceState, 'position' | 'mouseScreenPosition' | 'zoom'>
+  ): Pick<WorkspaceState, 'draftSegment'> {
+    const mouseReal = this._mouseScreenToReal(position, mouseScreenPosition, zoom);
+    return { draftSegment: [mouseReal, mouseReal] }
+  };
+
+  private _saveDraftSegment(draftSegment: Segment): Pick<WorkspaceState, 'draftSegment'> {
+    const object = {
+      id: uuidv4(),
+      geometry: draftSegment
+    };
+    this.store.dispatch(ObjectActions.addObject({ object }));
+    return { draftSegment: null };
+  };
+
+  private _createSelectionArea(
+    { position, mouseScreenPosition, zoom }: Pick<WorkspaceState, 'position' | 'mouseScreenPosition' | 'zoom'>
+  ): Pick<WorkspaceState, 'selectionArea'> {
+    const mouseReal = this._mouseScreenToReal(position, mouseScreenPosition, zoom);
+    return { selectionArea: [mouseReal, mouseReal] }
+  };
+
+  private _applySelectionArea(selectionArea: Segment): Pick<WorkspaceState, 'selectionArea'> {
+    return { selectionArea: null }
+  };
+
+  private _handleZoomChange(zoom: number, position: Point, mouseScreenPosition: Point, changeDirection: number): Pick<WorkspaceState, 'zoom' | 'position' | 'lastPosition'> {
+    const factor: number = this._getZoomChange(zoom, changeDirection);
     const newZoom = Math.min(Math.max(Math.round((zoom + factor) * 100) / 100, ViewportService.MIN_ZOOM), ViewportService.MAKS_ZOOM);
 
-    const wheelPosition = this.mouseScreenToReal(position, mouseScreenPosition, zoom);
-    const newWheelPosition = this.mouseScreenToReal(position, mouseScreenPosition, newZoom);
+    const wheelPosition = this._mouseScreenToReal(position, mouseScreenPosition, zoom);
+    const newWheelPosition = this._mouseScreenToReal(position, mouseScreenPosition, newZoom);
     const diff: Vector = getVector(wheelPosition, newWheelPosition);
     const newPosition = translatePoint(position, diff);
 
@@ -218,14 +254,14 @@ export class ViewportService {
     }
   }
 
-  private mouseScreenToReal(realPosition: Point, mouseScreenPosition: Point, scale: number): Point {
+  private _mouseScreenToReal(realPosition: Point, mouseScreenPosition: Point, scale: number): Point {
     return {
       x: realPosition.x + mouseScreenPosition.x / scale,
       y: realPosition.y + mouseScreenPosition.y / scale,
     }
   }
 
-  private getZoomChange(currentZoom: number, changeDirection: number): number {
+  private _getZoomChange(currentZoom: number, changeDirection: number): number {
     const zoomOutFactor: number = 0.05;
     const zoomInFactor: number = 0.5;
     if (currentZoom === 1) {
@@ -237,7 +273,7 @@ export class ViewportService {
     }
   }
 
-  private getStep(viewportWidth: number, zoom: number): number {
+  private _getStep(viewportWidth: number, zoom: number): number {
     let step = 1;
     let linesCount = viewportWidth;
     do {
@@ -247,8 +283,8 @@ export class ViewportService {
     return step;
   }
 
-  private getGridLines(linesCount: number, position: number, step: number, scale: number): number[] {
-    const firstLinePos = this.getFirstGridLinePos(position, step);
+  private _getGridLines(linesCount: number, position: number, step: number, scale: number): number[] {
+    const firstLinePos = this._getFirstGridLinePos(position, step);
 
     return Array(linesCount).fill(null).reduce((acc, _, i) => {
       const linePos = (firstLinePos + step * i) - position;
@@ -259,7 +295,7 @@ export class ViewportService {
     }, []);
   };
 
-  private getFirstGridLinePos(position: number, step: number): number {
+  private _getFirstGridLinePos(position: number, step: number): number {
     if (position < 0) {
       return position - (position % step);
     } else if (position > 0) {

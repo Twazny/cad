@@ -1,62 +1,38 @@
-<svg
-  preserveAspectRatio="xMidYMid meet"
-  appResize
-  appDrag
-  (wheel)="wheel$.next($event)"
-  (resize)="resize$.next($event)"
-  (dragEnd)="dragEnd$.next()"
-  (drag)="drag$.next($event)"
-  (click)="click$.next($event)"
-  (mousemove)="mousemove$.next($event)"
->
-  <g
-    app-grid
-    [xAxis]="(xAxis$ | async) || 0"
-    [yAxis]="(yAxis$ | async) || 0"
-    [xLines]="(gridLinesVertical$ | async) || []"
-    [yLines]="(gridLinesHorizontal$ | async) || []"
-  ></g>
+<svg preserveAspectRatio="xMidYMid meet" appResize appDrag (wheel)="wheel$.next($event)" (resize)="resize$.next($event)"
+  (dragEnd)="dragEnd$.next()" (drag)="drag$.next($event)" (click)="click$.next($event)"
+  (mousemove)="mousemove$.next($event)">
 
-  <g
-    app-segment
-    *ngFor="let segment of objects$ | async"
-    [segment]="segment"
-    [selected]="false"
-  ></g>
+  <g app-grid [xAxis]="(xAxis$ | async) || 0" [yAxis]="(yAxis$ | async) || 0"
+    [xLines]="(gridLinesVertical$ | async) || []" [yLines]="(gridLinesHorizontal$ | async) || []"></g>
+
+  @for (object of (objects$ | async); track object.id) {
+  <g app-segment [segment]="object.geometry" [selected]="false"></g>
+  }
 
   <text x="10" y="30">{{ position$ | async | json }}</text>
 
-  <text x="10" y="50">{{ zoom$ | async }}</text>
-
-  <text
-    stroke="white"
-    *ngIf="mouseTooltip$ | async as tooltip"
-    [attr.x]="tooltip.screenMousePostion.x"
-    [attr.y]="tooltip.screenMousePostion.y"
-  >
+  @if (mouseTooltip$ | async; as tooltip) {
+  <text class="tooltip" [attr.x]="tooltip.screenMousePostion.x" [attr.y]="tooltip.screenMousePostion.y">
     {{ tooltip.label }}
   </text>
+  }
 
-  <line
-    *ngIf="draftSegment$ | async as draft"
-    stroke-width="1"
-    class="segment"
-    [attr.x1]="draft[0].x"
-    [attr.x2]="draft[1].x"
-    [attr.y1]="draft[0].y"
-    [attr.y2]="draft[1].y"
-  ></line>
+  @if (draftSegment$ | async; as draft) {
+  <line class="segment" [attr.x1]="draft[0].x" [attr.x2]="draft[1].x" [attr.y1]="draft[0].y" [attr.y2]="draft[1].y">
+  </line>
+  }
+
+  @if (selectionArea$ | async; as selection) {
+  <rect class="selection" [attr.x]="selection.point.x" [attr.y]="selection.point.y" [attr.width]="selection.width"
+    [attr.height]="selection.height"></rect>
+  }
+
 </svg>
 
 <app-toolbar></app-toolbar>
 
-<app-scale
-  [scale]="zoom$ | async"
-  (scaleChange)="scaleChange$.next($event)"
-></app-scale>
+<app-scale [scale]="zoom$ | async" (scaleChange)="scaleChange$.next($event)"></app-scale>
 
-<app-bar-scale
-  *ngIf="barScale$ | async as barScale"
-  [step]="barScale.step"
-  [width]="barScale.stepWidth"
-></app-bar-scale>
+@if (barScale$ | async; as barScale) {
+<app-bar-scale [step]="barScale.step" [width]="barScale.stepWidth"></app-bar-scale>
+}
