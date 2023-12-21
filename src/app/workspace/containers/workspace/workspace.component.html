@@ -6,7 +6,7 @@
     [xLines]="(gridLinesVertical$ | async) || []" [yLines]="(gridLinesHorizontal$ | async) || []"></g>
 
   @for (object of (objects$ | async); track object.id) {
-  <g app-segment [segment]="object.geometry" [selected]="false"></g>
+  <g app-segment [segment]="object.geometry" [selected]="object.selected"></g>
   }
 
   <text x="10" y="30">{{ position$ | async | json }}</text>

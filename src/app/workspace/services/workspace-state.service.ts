@@ -4,7 +4,7 @@ import { rxState } from '@rx-angular/state';
 import { Store } from "@ngrx/store";
 import { v4 as uuidv4 } from 'uuid';
 
-import { Rect, PositionedRect, Segment, scaleSegment, segmentToRect, translateSegment, Vector, getVector, Point, invertPoint, isSamePoint, translatePoint } from "../../geometry/models";
+import { Rect, PositionedRect, Segment, scaleSegment, segmentToRect, translateSegment, Vector, getVector, Point, invertPoint, isSamePoint, translatePoint, getBoundingSegments, areSegmentsIntersecting, containsPoint } from "../../geometry/models";
 import { CursorData, Command, WorkspaceObject, WorkspaceState } from "../models";
 import { selectAllObjects } from "../store/object.selectors";
 import * as ObjectActions from '../store/object.actions';
@@ -20,6 +20,7 @@ export class WorkspaceStateService {
       lastPosition: WorkspaceStateService.INITIAL_POSITION,
       position: WorkspaceStateService.INITIAL_POSITION,
       objects: [],
+      selectedObjectIds: [],
       mainCommand: WorkspaceStateService.INITIAL_COMMAND
     });
     connect('objects', this.store.select(selectAllObjects));
@@ -105,9 +106,9 @@ export class WorkspaceStateService {
     }
   );
 
-  public viewportObjects$: Observable<WorkspaceObject[]> = this.state.select(
-    ['zoom', 'position', 'viewportSize', 'objects'],
-    ({ zoom, position, viewportSize, objects }) => {
+  public viewportObjects$: Observable<(WorkspaceObject & { selected: boolean })[]> = this.state.select(
+    ['zoom', 'position', 'viewportSize', 'objects', 'selectedObjectIds'],
+    ({ zoom, position, viewportSize, objects, selectedObjectIds }) => {
       const visibleRect: PositionedRect = {
         point: { x: 0, y: 0 },
         width: viewportSize.width,
@@ -120,19 +121,14 @@ export class WorkspaceStateService {
       let notVisible: WorkspaceObject[] = [];
       let intersected: WorkspaceObject[] = [];
 
-      objects.map((object: WorkspaceObject) => {
+      return objects.map((object: WorkspaceObject) => {
         const { geometry: segment } = object;
         return {
           ...object,
-          geometry: scaleSegment(translateSegment(segment, translateVector), zoom)
+          geometry: scaleSegment(translateSegment(segment, translateVector), zoom),
+          selected: selectedObjectIds.includes(object.id)
         }
-      }).forEach((object: WorkspaceObject) => {
-        // TODO: calculate visible elements
-        // calculate 2D function ax + b for segments
-        visible.push(object)
       });
-
-      return visible.concat(intersected).concat(notVisible);
     }
   );
 
@@ -149,12 +145,17 @@ export class WorkspaceStateService {
   public connectMousemove(mouseMove$: Observable<MouseEvent>): void {
     this.state.connect(
       mouseMove$.pipe(map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))),
-      ({ draftSegment, position, zoom, selectionArea }, mouseScreenPosition) => {
+      ({ draftSegment, position, zoom, selectionArea, objects }, mouseScreenPosition) => {
         const mouseReal = this._mouseScreenToReal(position, mouseScreenPosition, zoom)
         return ({
           mouseScreenPosition,
-          draftSegment: draftSegment ? [draftSegment[0], mouseReal] : null,
-          selectionArea: selectionArea ? [selectionArea[0], mouseReal] : null
+          ...(draftSegment && {
+            draftSegment: [draftSegment[0], mouseReal]
+          }),
+          ...(selectionArea && {
+            selectionArea: [selectionArea[0], mouseReal],
+            selectedObjectIds: this._getSelectedObjects(selectionArea, objects)
+          })
         })
       }
     );
@@ -218,6 +219,23 @@ export class WorkspaceStateService {
     this.store.dispatch(ObjectActions.addObject({ object }));
     return { draftSegment: null };
   };
+
+  private _getSelectedObjects(selectionArea: Segment, objects: WorkspaceObject[]): string[] {
+    const includeIntersected = selectionArea[0].x > selectionArea[1].x;
+    const boundingSegments = getBoundingSegments(selectionArea);
+    const selectionRect = segmentToRect(selectionArea);
+    return objects
+      .filter((object) => {
+        return this._isObjectContainedInSelection(selectionRect, object.geometry) || (
+          includeIntersected ? boundingSegments.some((segment) => areSegmentsIntersecting(segment, object.geometry)) : false
+        );
+      })
+      .map(({ id }) => id);
+  }
+
+  private _isObjectContainedInSelection(rect: PositionedRect, segment: Segment): boolean {
+    return containsPoint(rect, segment[0]) && containsPoint(rect, segment[1]);
+  }
 
   private _createSelectionArea(
     { position, mouseScreenPosition, zoom }: Pick<WorkspaceState, 'position' | 'mouseScreenPosition' | 'zoom'>

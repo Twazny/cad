@@ -4,7 +4,10 @@
         stroke="white"
         [attr.x1]="segment[0].x"
         class="segment"
-        [class.hovered]="hovered()"
+        [ngClass]="{
+            hovered: hovered(),
+            selected: selected
+        }"
         [attr.x2]="segment[1].x"
         [attr.y1]="segment[0].y"
         [attr.y2]="segment[1].y"
