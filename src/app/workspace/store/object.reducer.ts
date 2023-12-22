@@ -14,8 +14,11 @@ export const initialState: State = adapter.getInitialState();
 export const objectReducer = createReducer(
     initialState,
     on(ObjectActions.addObject, (state, { object }) => {
-        return adapter.addOne(object, state)
+        return adapter.addOne(object, state);
     }),
+    on(ObjectActions.deleteObjects, (state, { objectIds }) => {
+        return adapter.removeMany(objectIds, state);
+    })
 );
 
 const { selectAll } = adapter.getSelectors();
