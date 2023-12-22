@@ -162,21 +162,14 @@ export class WorkspaceStateService {
   }
 
   public connectClick(mouseClick$: Observable<MouseEvent>): void {
-    this.state.connect(mouseClick$, ({ draftSegment, mouseScreenPosition, position, lastPosition, zoom, mainCommand, selectionArea }) => {
+    this.state.connect(mouseClick$, (state: WorkspaceState) => {
+      const { position, lastPosition, mainCommand } = state;
       if (isSamePoint(position, lastPosition)) {
         switch (mainCommand) {
           case Command.LINE:
-            if (!draftSegment) {
-              return this._createDraftSegment({ position, zoom, mouseScreenPosition });
-            } else {
-              return this._saveDraftSegment(draftSegment);
-            }
+            return this._handleClickInLineCommand(state);
           case Command.SELECT:
-            if (!selectionArea) {
-              return this._createSelectionArea({ position, zoom, mouseScreenPosition });
-            } else {
-              return this._applySelectionArea(selectionArea);
-            }
+            return this._handleClickInSelectCommand(state);
         }
       } else {
         return { lastPosition: position };
@@ -202,6 +195,30 @@ export class WorkspaceStateService {
 
   public connectMainCommand(command$: Observable<Command>): void {
     this.state.connect('mainCommand', command$);
+  }
+
+  private _handleClickInSelectCommand(
+    { position, zoom, mouseScreenPosition, selectedObjectIds, selectionArea }: WorkspaceState
+  ): Partial<WorkspaceState> {
+    if (!selectionArea) {
+      if (selectedObjectIds.length > 0) {
+        return { selectedObjectIds: [] }
+      } else {
+        return this._createSelectionArea({ position, zoom, mouseScreenPosition });
+      }
+    } else {
+      return this._applySelectionArea(selectionArea);
+    }
+  }
+
+  private _handleClickInLineCommand(
+    { draftSegment, position, zoom, mouseScreenPosition }: WorkspaceState
+  ): Partial<WorkspaceState> {
+    if (!draftSegment) {
+      return this._createDraftSegment({ position, zoom, mouseScreenPosition });
+    } else {
+      return this._saveDraftSegment(draftSegment);
+    }
   }
 
   private _createDraftSegment(
