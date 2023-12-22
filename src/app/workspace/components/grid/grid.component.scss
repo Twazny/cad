@@ -1,7 +1,9 @@
+@import '../../../../colors.scss';
+
 line.grid {
     stroke: rgb(46, 46, 46);
 }
 
 line.axis {
-    stroke: orangered;
+    stroke: $blue-color;
 }

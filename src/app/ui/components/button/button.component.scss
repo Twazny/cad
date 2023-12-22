@@ -1,6 +1,8 @@
+@import '../../../../colors.scss';
+
 :host {
     $background: #e1e1e1;
-    $outline: #4fc7ff;
+    $outline: $blue-color;
     font-family: inherit;
     border: none;
     background-color: $background;
@@ -20,18 +22,19 @@
         outline-offset: 3px;
     }
 
-    &:active, &[aria-pressed=true], &[aria-checked=true] {
+    &:active,
+    &[aria-pressed=true],
+    &[aria-checked=true] {
         background-color: $outline;
     }
 
     &.button {
         padding: 0.3rem 0.5rem;
     }
-    
+
     &.button-icon {
         width: 2rem;
         height: 2rem;
         padding: 0;
     }
 }
-
