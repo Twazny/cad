@@ -16,7 +16,6 @@ describe('ButtonComponent', () => {
             expect(component).toBeTruthy();
         });
 
-
         it('should render content', () => {
             const text: string = 'Button text';
             renderButton('app-button', text);
@@ -35,10 +34,21 @@ describe('ButtonComponent', () => {
 
             expect(ngMocks.find('[app-button-icon]').classes['button-icon']).toBe(true);
         });
+
+        it('should have disabled attribute when disabled input is true', () => {
+            renderButton('app-button-icon');
+
+            expect(ngMocks.find('[app-button-icon]').attributes['disabled']).toBeFalsy();
+
+            fixture.componentInstance['disabled'] = true;
+            fixture.detectChanges();
+
+            expect(ngMocks.find('[app-button-icon]').attributes['disabled']).toBe('true');
+        })
     });
 
     function renderButton(attribute: string = 'app-button', content: string = 'Button text'): void {
-        fixture = MockRender(`<button ${attribute}>${content}</button>`);
+        fixture = MockRender(`<button ${attribute} [disabled]="disabled">${content}</button>`, { disabled: false });
         component = ngMocks.findInstance(ButtonComponent);
     }
 });

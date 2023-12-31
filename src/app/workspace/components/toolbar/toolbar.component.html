@@ -1,12 +1,20 @@
 <app-button-group aria-label="working mode" [formControl]="modeControl">
-  <button app-button-icon [appButtonGroupOption]="Command.SELECT" aria-label="selection mode">
+  <button
+    app-button-icon
+    [appButtonGroupOption]="Command.SELECT"
+    aria-label="selection mode"
+  >
     <app-icon>select</app-icon>
   </button>
-  <button app-button-icon [appButtonGroupOption]="Command.LINE" aria-label="line drawing mode">
+  <button
+    app-button-icon
+    [appButtonGroupOption]="Command.LINE"
+    aria-label="line drawing mode"
+  >
     <app-icon>pen_size_3</app-icon>
   </button>
 </app-button-group>
 
-<button app-button-icon aria-label="delete selected">
+<button app-button-icon aria-label="delete selected" disabled>
   <app-icon>delete</app-icon>
 </button>
