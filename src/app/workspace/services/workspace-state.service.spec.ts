@@ -87,5 +87,39 @@ describe('WorkspaceStateService', () => {
 
       });
     });
+
+    it('should zoom objects according to center of screen', () => {
+      testScheduler.run(({ cold, expectObservable }) => {
+        const subsMarble = ' ---^----!';
+        const zoomMarble = '-a---b-c-';
+        const resMarble = ' ---a-b-c-';
+
+        const zoomValues = { a: -1, b: 1, c: 1 };
+
+        const resValues = {
+          a: [
+            { id: '1', geometry: [{ x: 12, y: 12 }, { x: 12, y: 31 }], selected: false },
+            { id: '2', geometry: [{ x: 12, y: 12 }, { x: 31, y: 31 }], selected: false },
+            { id: '3', geometry: [{ x: 12, y: 31 }, { x: 31, y: 31 }], selected: false }
+          ],
+          b: [
+            { id: '1', geometry: [{ x: 10, y: 10 }, { x: 10, y: 30 }], selected: false },
+            { id: '2', geometry: [{ x: 10, y: 10 }, { x: 30, y: 30 }], selected: false },
+            { id: '3', geometry: [{ x: 10, y: 30 }, { x: 30, y: 30 }], selected: false }
+          ],
+          c: [
+            { id: '1', geometry: [{ x: -10, y: -10 }, { x: -10, y: 20 }], selected: false },
+            { id: '2', geometry: [{ x: -10, y: -10 }, { x: 20, y: 20 }], selected: false },
+            { id: '3', geometry: [{ x: -10, y: 20 }, { x: 20, y: 20 }], selected: false }
+          ],
+        };
+
+        const zoom$: ColdObservable<number> = cold(zoomMarble, zoomValues);
+
+        service.connectZoom(zoom$);
+
+        expectObservable(service.viewportObjects$, subsMarble).toBe(resMarble, resValues);
+      });
+    });
   });
 });
