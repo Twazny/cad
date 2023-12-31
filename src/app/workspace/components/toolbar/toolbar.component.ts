@@ -16,10 +16,10 @@ export class ToolbarComponent implements OnInit {
     protected readonly Command = Command;
     protected readonly modeControl = new FormControl(Command.SELECT, { nonNullable: true });
 
-    private readonly viewportService = inject(WorkspaceStateService);
+    private readonly workspaceState = inject(WorkspaceStateService);
 
     public ngOnInit(): void {
-        this.viewportService.mainCommand$.subscribe((command) => this.modeControl.patchValue(command));
-        this.viewportService.connectMainCommand(this.modeControl.valueChanges);
+        this.workspaceState.mainCommand$.subscribe((command) => this.modeControl.patchValue(command));
+        this.workspaceState.connectMainCommand(this.modeControl.valueChanges);
     }
 }
