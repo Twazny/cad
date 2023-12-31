@@ -17,20 +17,20 @@ import { ScaleComponent, BarScaleComponent, SegmentComponent, GridComponent, Too
 })
 export class WorkspaceComponent implements OnInit {
 
-  private readonly viewportService: WorkspaceStateService = inject(WorkspaceStateService);
+  private readonly workspaceState: WorkspaceStateService = inject(WorkspaceStateService);
 
-  protected readonly objects$ = this.viewportService.viewportObjects$;
-  protected readonly position$ = this.viewportService.position$;
-  protected readonly zoom$ = this.viewportService.zoom$;
-  protected readonly xAxis$ = this.viewportService.xAxis$;
-  protected readonly yAxis$ = this.viewportService.yAxis$;
-  protected readonly mouseTooltip$ = this.viewportService.mouseTooltip$;
-  protected readonly draftSegment$ = this.viewportService.draftSegment$;
-  protected readonly selectionArea$ = this.viewportService.selectionArea$;
+  protected readonly objects$ = this.workspaceState.viewportObjects$;
+  protected readonly position$ = this.workspaceState.position$;
+  protected readonly zoom$ = this.workspaceState.zoom$;
+  protected readonly xAxis$ = this.workspaceState.xAxis$;
+  protected readonly yAxis$ = this.workspaceState.yAxis$;
+  protected readonly mouseTooltip$ = this.workspaceState.mouseTooltip$;
+  protected readonly draftSegment$ = this.workspaceState.draftSegment$;
+  protected readonly selectionArea$ = this.workspaceState.selectionArea$;
 
-  protected readonly gridLinesVertical$ = this.viewportService.gridLines$.pipe(map((lines) => lines.vertical));
-  protected readonly gridLinesHorizontal$ = this.viewportService.gridLines$.pipe(map((lines) => lines.horizontal));
-  protected readonly barScale$ = this.viewportService.gridLines$.pipe(map(({ step, stepWidth }) => ({ step, stepWidth })));
+  protected readonly gridLinesVertical$ = this.workspaceState.gridLines$.pipe(map((lines) => lines.vertical));
+  protected readonly gridLinesHorizontal$ = this.workspaceState.gridLines$.pipe(map((lines) => lines.horizontal));
+  protected readonly barScale$ = this.workspaceState.gridLines$.pipe(map(({ step, stepWidth }) => ({ step, stepWidth })));
 
   dragEnd$: Subject<void> = new Subject();
   drag$: Subject<Vector> = new Subject();
@@ -41,11 +41,11 @@ export class WorkspaceComponent implements OnInit {
   mousemove$: Subject<MouseEvent> = new Subject();
 
   public ngOnInit(): void {
-    this.viewportService.connectResize(this.resize$);
-    this.viewportService.connectWheel(this.wheel$);
-    this.viewportService.connectDrag(this.drag$);
-    this.viewportService.connectZoom(this.scaleChange$);
-    this.viewportService.connectMousemove(this.mousemove$);
-    this.viewportService.connectClick(this.click$);
+    this.workspaceState.connectResize(this.resize$);
+    this.workspaceState.connectWheel(this.wheel$);
+    this.workspaceState.connectDrag(this.drag$);
+    this.workspaceState.connectZoom(this.scaleChange$);
+    this.workspaceState.connectMousemove(this.mousemove$);
+    this.workspaceState.connectClick(this.click$);
   }
 }

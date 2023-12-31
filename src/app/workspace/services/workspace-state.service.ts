@@ -58,7 +58,12 @@ export class WorkspaceStateService {
         return null;
       }
     }
-  )
+  );
+
+  public isAnythingSelected$: Observable<boolean> = this.state.select(
+    ['selectedObjectIds'],
+    ({selectedObjectIds}) => selectedObjectIds.length > 0
+  );
 
   public mouseTooltip$: Observable<CursorData> = this.state.select(
     ['position', 'mouseScreenPosition', 'zoom'],
@@ -194,6 +199,15 @@ export class WorkspaceStateService {
 
   public connectMainCommand(command$: Observable<Command>): void {
     this.state.connect('mainCommand', command$);
+  }
+
+  public connectDelete(delete$: Observable<void>): void {
+    this.state.connect(delete$, ({ selectedObjectIds }) => {
+      this.store.dispatch(ObjectActions.deleteObjects({ objectIds: selectedObjectIds }));
+      return {
+        selectedObjectIds: []
+      };
+    });
   }
 
   private _handleClickInSelectCommand(

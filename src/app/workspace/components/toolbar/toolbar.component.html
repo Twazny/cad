@@ -15,6 +15,11 @@
   </button>
 </app-button-group>
 
-<button app-button-icon aria-label="delete selected" disabled>
+<button
+  app-button-icon
+  aria-label="delete selected objects"
+  [disabled]="!(isAnythingSelected$ | async)"
+  (click)="delete$.next()"
+>
   <app-icon>delete</app-icon>
 </button>
