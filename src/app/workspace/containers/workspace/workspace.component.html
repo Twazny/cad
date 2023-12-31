@@ -9,7 +9,11 @@
   <g app-segment [segment]="object.geometry" [selected]="object.selected"></g>
   }
 
-  <text x="10" y="30">{{ position$ | async | json }}</text>
+  @if (position$ | async; as position) {
+  <text x="10" y="30">X: {{ position.x | number:'1.2-2' }}</text>
+  <text x="10" y="50">Y: {{ position.y | number:'1.2-2' }}</text>
+  }
+
 
   @if (mouseTooltip$ | async; as tooltip) {
   <g app-cursor-tooltip [cursorData]="tooltip"></g>

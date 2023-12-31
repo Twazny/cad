@@ -8,13 +8,14 @@ import { Rect, PositionedRect, Segment, scaleSegment, segmentToRect, translateSe
 import { CursorData, Command, WorkspaceObject, WorkspaceState } from "../models";
 import { selectAllObjects } from "../store/object.selectors";
 import * as ObjectActions from '../store/object.actions';
+import { roundSegment } from "src/app/utils/round";
 
 @Injectable()
 export class WorkspaceStateService {
 
   private readonly store: Store = inject(Store);
 
-  private readonly state = rxState<WorkspaceState>(({ set, connect }) => {
+  public readonly state = rxState<WorkspaceState>(({ set, connect }) => {
     set({
       zoom: WorkspaceStateService.INITIAL_ZOOM,
       lastPosition: WorkspaceStateService.INITIAL_POSITION,
@@ -41,7 +42,7 @@ export class WorkspaceStateService {
     ['position', 'zoom', 'draftSegment'],
     ({ position, zoom, draftSegment }) => {
       const translateVector = invertPoint(position);
-      return draftSegment ? scaleSegment(translateSegment(draftSegment, translateVector), zoom) : null;
+      return draftSegment ? this._realSegmentToScreen(draftSegment, translateVector, zoom) : null;
     }
   );
 
@@ -50,7 +51,7 @@ export class WorkspaceStateService {
     ({ position, zoom, selectionArea }) => {
       const translateVector = invertPoint(position);
       if (selectionArea) {
-        const scaledSegment = scaleSegment(translateSegment(selectionArea, translateVector), zoom);
+        const scaledSegment = this._realSegmentToScreen(selectionArea, translateVector, zoom);
         const positionedRect = segmentToRect(scaledSegment);
         return positionedRect;
       } else {
@@ -61,13 +62,10 @@ export class WorkspaceStateService {
 
   public mouseTooltip$: Observable<CursorData> = this.state.select(
     ['position', 'mouseScreenPosition', 'zoom'],
-    ({ position, mouseScreenPosition, zoom }) => {
-      const { x, y } = this._mouseScreenToReal(position, mouseScreenPosition, zoom);
-      return {
-        label: `(${x}, ${y})`,
-        screenMousePostion: mouseScreenPosition
-      };
-    }
+    ({ position, mouseScreenPosition, zoom }) => ({
+      realMousePosition: this._mouseScreenToReal(position, mouseScreenPosition, zoom),
+      screenMousePosition: mouseScreenPosition
+    })
   );
 
   public yAxis$: Observable<number> = this.state.select(
@@ -125,7 +123,7 @@ export class WorkspaceStateService {
         const { geometry: segment } = object;
         return {
           ...object,
-          geometry: scaleSegment(translateSegment(segment, translateVector), zoom),
+          geometry: roundSegment(this._realSegmentToScreen(segment, translateVector, zoom), zoom),
           selected: selectedObjectIds.includes(object.id)
         }
       });
@@ -133,9 +131,10 @@ export class WorkspaceStateService {
   );
 
   public connectDrag(drag$: Observable<Vector>): void {
-    this.state.connect('position', drag$, ({ lastPosition, zoom }, vector) => {
-      return { x: (lastPosition.x + vector.x / zoom), y: (lastPosition.y + vector.y / zoom) };
-    });
+    this.state.connect('position', drag$, ({ lastPosition, zoom }, vector) => ({
+      x: lastPosition.x + vector.x / zoom,
+      y: lastPosition.y + vector.y / zoom
+    }));
   }
 
   public connectResize(viewportSize$: Observable<Rect>): void {
@@ -331,4 +330,8 @@ export class WorkspaceStateService {
       return step;
     }
   };
+
+  private _realSegmentToScreen(segment: Segment, vector: Vector, scale: number): Segment {
+    return scaleSegment(translateSegment(segment, vector), scale);
+  }
 }
