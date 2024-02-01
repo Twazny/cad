@@ -1,4 +1,17 @@
-# Cad
+# 2D CAD (Computer Aided Design)
+
+Web application inspired by Autodesk AutoCAD.
+
+Current features include:
+- workspace with 2D coordinate system
+- support grid lines adapting to scale
+- workspace panning
+- workspace zoom by mouse wheel
+- workspace zoom by +/- controls
+- drawing lines
+- selecting lines with window selection (from left to right)
+- selecting lines with crossing selection (from right to left)
+- deleting lines
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.6.
 

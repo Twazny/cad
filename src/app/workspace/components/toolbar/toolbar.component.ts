@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from "@angular/core";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { ButtonComponent, ButtonGroupComponent, IconComponent, ButtonGroupOptionDirective } from "src/app/ui/components";
-import { WorkspaceStateService } from "../../services/workspace-state.service";
+import { WorkspaceStateService } from "../../services/workspace-state/workspace-state.service";
 import { Command } from "../../models/command.enum";
 import { AsyncPipe } from "@angular/common";
 import { Subject } from "rxjs";

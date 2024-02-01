@@ -2,22 +2,41 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { Subject, map } from 'rxjs';
 import { ResizeDirective } from '../../directives/resize/resize.directive';
-import { WorkspaceStateService } from '../../services/workspace-state.service';
+import { WorkspaceStateService } from '../../services/workspace-state/workspace-state.service';
 import { DragDirective } from '../../directives/drag/drag.directive';
 import { Vector, Rect } from '../../../geometry/models';
-import { ScaleComponent, BarScaleComponent, SegmentComponent, GridComponent, ToolbarComponent, CursorTooltipComponent } from '../../components';
+import {
+  ScaleComponent,
+  BarScaleComponent,
+  SegmentComponent,
+  GridComponent,
+  ToolbarComponent,
+  CursorTooltipComponent,
+} from '../../components';
+import { ZoomService } from '../../services/zoom/zoom.service';
 
 @Component({
   selector: 'app-workspace',
   standalone: true,
-  imports: [CommonModule, ResizeDirective, DragDirective, ScaleComponent, NgIf, BarScaleComponent, SegmentComponent, GridComponent, ToolbarComponent, CursorTooltipComponent],
+  imports: [
+    CommonModule,
+    ResizeDirective,
+    DragDirective,
+    ScaleComponent,
+    NgIf,
+    BarScaleComponent,
+    SegmentComponent,
+    GridComponent,
+    ToolbarComponent,
+    CursorTooltipComponent,
+  ],
   templateUrl: './workspace.component.html',
   styleUrls: ['./workspace.component.scss'],
-  providers: [WorkspaceStateService]
+  providers: [WorkspaceStateService, ZoomService],
 })
 export class WorkspaceComponent implements OnInit {
-
-  private readonly workspaceState: WorkspaceStateService = inject(WorkspaceStateService);
+  private readonly workspaceState = inject(WorkspaceStateService);
+  private readonly zoomService = inject(ZoomService);
 
   protected readonly objects$ = this.workspaceState.viewportObjects$;
   protected readonly position$ = this.workspaceState.position$;
@@ -28,9 +47,15 @@ export class WorkspaceComponent implements OnInit {
   protected readonly draftSegment$ = this.workspaceState.draftSegment$;
   protected readonly selectionArea$ = this.workspaceState.selectionArea$;
 
-  protected readonly gridLinesVertical$ = this.workspaceState.gridLines$.pipe(map((lines) => lines.vertical));
-  protected readonly gridLinesHorizontal$ = this.workspaceState.gridLines$.pipe(map((lines) => lines.horizontal));
-  protected readonly barScale$ = this.workspaceState.gridLines$.pipe(map(({ step, stepWidth }) => ({ step, stepWidth })));
+  protected readonly gridLinesVertical$ = this.workspaceState.gridLines$.pipe(
+    map((lines) => lines.vertical)
+  );
+  protected readonly gridLinesHorizontal$ = this.workspaceState.gridLines$.pipe(
+    map((lines) => lines.horizontal)
+  );
+  protected readonly barScale$ = this.workspaceState.gridLines$.pipe(
+    map(({ step, stepWidth }) => ({ step, stepWidth }))
+  );
 
   dragEnd$: Subject<void> = new Subject();
   drag$: Subject<Vector> = new Subject();
@@ -42,10 +67,11 @@ export class WorkspaceComponent implements OnInit {
 
   public ngOnInit(): void {
     this.workspaceState.connectResize(this.resize$);
-    this.workspaceState.connectWheel(this.wheel$);
     this.workspaceState.connectDrag(this.drag$);
-    this.workspaceState.connectZoom(this.scaleChange$);
     this.workspaceState.connectMousemove(this.mousemove$);
     this.workspaceState.connectClick(this.click$);
+
+    this.zoomService.connectWheel(this.wheel$);
+    this.zoomService.connectZoom(this.scaleChange$);
   }
 }
