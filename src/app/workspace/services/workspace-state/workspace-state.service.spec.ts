@@ -68,7 +68,7 @@ describe('WorkspaceStateService', () => {
         const scaleChanges: Record<string, ScaleChange> = {
           a: { newScale: 0.95, scalingCenter: { x: 10, y: 10 } },
           b: { newScale: 1, scalingCenter: { x: 10, y: 10 } },
-          c: { newScale: 1.1, scalingCenter: { x: 10, y: 10 } },
+          c: { newScale: 1.5, scalingCenter: { x: 10, y: 10 } },
         };
 
         const resValues = {

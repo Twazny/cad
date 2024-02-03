@@ -1,33 +1,28 @@
-import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
+import { MockBuilder, MockRender, ngMocks } from 'ng-mocks';
+import { WorkspaceComponent } from './workspace/containers/workspace/workspace.component';
 
 describe('AppComponent', () => {
+  let component: AppComponent;
+
   beforeEach(() =>
-    TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
-      declarations: [AppComponent],
-    })
+    MockBuilder(AppComponent)
+      .mock(WorkspaceComponent)
+      .then(() => {
+        component = MockRender(AppComponent, null, { reset: true }).point
+          .componentInstance;
+      })
   );
 
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(component).toBeTruthy();
   });
 
-  it(`should have as title 'cad'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('cad');
+  it(`should have as title 'CAD'`, () => {
+    expect(component.title).toEqual('CAD');
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain(
-      'cad app is running!'
-    );
+  it('should render Workspace component', () => {
+    expect(ngMocks.findInstance(WorkspaceComponent)).toBeTruthy();
   });
 });

@@ -10,11 +10,7 @@ describe('ButtonComponent', () => {
   let fixture: MockedComponentFixture;
   let component: ButtonComponent;
 
-  beforeEach(async () =>
-    MockBuilder(ButtonComponent).then(() => {
-      MockRender();
-    })
-  );
+  beforeEach(async () => MockBuilder(ButtonComponent));
 
   describe('component init', () => {
     it('should create', () => {
@@ -67,6 +63,7 @@ describe('ButtonComponent', () => {
     fixture = MockRender(
       `<button ${attribute} [disabled]="disabled">${content}</button>`,
       { disabled: false }
+      // { reset: true }
     );
     component = ngMocks.findInstance(ButtonComponent);
   }

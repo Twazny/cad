@@ -27,6 +27,7 @@ import {
   WorkspaceObject,
   WorkspaceState,
   ScaleChange,
+  GridLines,
 } from '../../models';
 import { selectAllObjects } from '../../store/object.selectors';
 import * as ObjectActions from '../../store/object.actions';
@@ -117,12 +118,7 @@ export class WorkspaceStateService {
     }
   );
 
-  public gridLines$: Observable<{
-    step: number;
-    stepWidth: number;
-    vertical: number[];
-    horizontal: number[];
-  }> = this.state.select(
+  public gridLines$: Observable<GridLines> = this.state.select(
     ['position', 'scale', 'viewportSize'],
     ({ position, scale, viewportSize }) => {
       const step: number = this._getStep(viewportSize.width, scale);
