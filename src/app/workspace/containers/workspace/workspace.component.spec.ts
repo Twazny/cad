@@ -22,8 +22,7 @@ describe('WorkspaceComponent', () => {
       } as Partial<WorkspaceStateService>)
       .mock(ZoomService)
       .then(() => {
-        component = MockRender(WorkspaceComponent, null, { reset: true }).point
-          .componentInstance;
+        component = MockRender(WorkspaceComponent).point.componentInstance;
       })
   );
 

@@ -9,8 +9,7 @@ describe('AppComponent', () => {
     MockBuilder(AppComponent)
       .mock(WorkspaceComponent)
       .then(() => {
-        component = MockRender(AppComponent, null, { reset: true }).point
-          .componentInstance;
+        component = MockRender(AppComponent).point.componentInstance;
       })
   );
 

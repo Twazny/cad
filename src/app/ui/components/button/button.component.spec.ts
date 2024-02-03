@@ -63,7 +63,6 @@ describe('ButtonComponent', () => {
     fixture = MockRender(
       `<button ${attribute} [disabled]="disabled">${content}</button>`,
       { disabled: false }
-      // { reset: true }
     );
     component = ngMocks.findInstance(ButtonComponent);
   }
