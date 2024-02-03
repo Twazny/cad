@@ -1,4 +1,4 @@
 export enum Command {
-    SELECT,
-    LINE
+  SELECT,
+  LINE,
 }

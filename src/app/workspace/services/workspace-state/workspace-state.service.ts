@@ -146,20 +146,9 @@ export class WorkspaceStateService {
   public viewportObjects$: Observable<
     (WorkspaceObject & { selected: boolean })[]
   > = this.state.select(
-    ['scale', 'position', 'viewportSize', 'objects', 'selectedObjectIds'],
-    ({ scale, position, viewportSize, objects, selectedObjectIds }) => {
-      const visibleRect: PositionedRect = {
-        point: { x: 0, y: 0 },
-        width: viewportSize.width,
-        height: viewportSize.height,
-      };
-
+    ['scale', 'position', 'objects', 'selectedObjectIds'],
+    ({ scale, position, objects, selectedObjectIds }) => {
       const translateVector = invertPoint(position);
-
-      let visible: WorkspaceObject[] = [];
-      let notVisible: WorkspaceObject[] = [];
-      let intersected: WorkspaceObject[] = [];
-
       return objects.map((object: WorkspaceObject) => {
         const { geometry: segment } = object;
         return {
@@ -293,7 +282,7 @@ export class WorkspaceStateService {
         });
       }
     } else {
-      return this._applySelectionArea(selectionArea);
+      return this._applySelectionArea();
     }
   }
 
@@ -345,11 +334,11 @@ export class WorkspaceStateService {
     const boundingSegments = getBoundingSegments(selectionArea);
     const selectionRect = segmentToRect(selectionArea);
     return objects
-      .filter((object) => {
+      .filter(object => {
         return (
           this._isObjectContainedInSelection(selectionRect, object.geometry) ||
           (includeIntersected
-            ? boundingSegments.some((segment) =>
+            ? boundingSegments.some(segment =>
                 areSegmentsIntersecting(segment, object.geometry)
               )
             : false)
@@ -381,9 +370,7 @@ export class WorkspaceStateService {
     return { selectionArea: [mouseReal, mouseReal] };
   }
 
-  private _applySelectionArea(
-    selectionArea: Segment
-  ): Pick<WorkspaceState, 'selectionArea'> {
+  private _applySelectionArea(): Pick<WorkspaceState, 'selectionArea'> {
     return { selectionArea: null };
   }
 

@@ -2,15 +2,13 @@
   <button
     app-button-icon
     [appButtonGroupOption]="Command.SELECT"
-    aria-label="selection mode"
-  >
+    aria-label="selection mode">
     <app-icon>select</app-icon>
   </button>
   <button
     app-button-icon
     [appButtonGroupOption]="Command.LINE"
-    aria-label="line drawing mode"
-  >
+    aria-label="line drawing mode">
     <app-icon>pen_size_3</app-icon>
   </button>
 </app-button-group>
@@ -18,8 +16,7 @@
 <button
   app-button-icon
   aria-label="delete selected objects"
-  [disabled]="!(isAnythingSelected$ | async)"
-  (click)="delete$.next()"
->
+  [disabled]="(isAnythingSelected$ | async) === false"
+  (click)="delete$.next()">
   <app-icon>delete</app-icon>
 </button>

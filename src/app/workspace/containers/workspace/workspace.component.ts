@@ -48,10 +48,10 @@ export class WorkspaceComponent implements OnInit {
   protected readonly selectionArea$ = this.workspaceState.selectionArea$;
 
   protected readonly gridLinesVertical$ = this.workspaceState.gridLines$.pipe(
-    map((lines) => lines.vertical)
+    map(lines => lines.vertical)
   );
   protected readonly gridLinesHorizontal$ = this.workspaceState.gridLines$.pipe(
-    map((lines) => lines.horizontal)
+    map(lines => lines.horizontal)
   );
   protected readonly barScale$ = this.workspaceState.gridLines$.pipe(
     map(({ step, stepWidth }) => ({ step, stepWidth }))

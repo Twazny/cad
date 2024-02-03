@@ -8,16 +8,14 @@ import { StoreModule } from '@ngrx/store';
 import { objectReducer } from './workspace/store/object.reducer';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
     WorkspaceComponent,
-    StoreModule.forRoot({ objects: objectReducer }, {})
+    StoreModule.forRoot({ objects: objectReducer }, {}),
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

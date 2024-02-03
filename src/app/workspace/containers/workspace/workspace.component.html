@@ -1,40 +1,60 @@
-<svg preserveAspectRatio="xMidYMid meet" appResize appDrag (wheel)="wheel$.next($event)" (resize)="resize$.next($event)"
-  (dragEnd)="dragEnd$.next()" (drag)="drag$.next($event)" (click)="click$.next($event)"
+<svg
+  preserveAspectRatio="xMidYMid meet"
+  appResize
+  appDrag
+  (wheel)="wheel$.next($event)"
+  (resizeChange)="resize$.next($event)"
+  (dragEnd)="dragEnd$.next()"
+  (dragChange)="drag$.next($event)"
+  (click)="click$.next($event)"
   (mousemove)="mousemove$.next($event)">
+  <g
+    app-grid
+    [xAxis]="(xAxis$ | async) || 0"
+    [yAxis]="(yAxis$ | async) || 0"
+    [xLines]="(gridLinesVertical$ | async) || []"
+    [yLines]="(gridLinesHorizontal$ | async) || []"></g>
 
-  <g app-grid [xAxis]="(xAxis$ | async) || 0" [yAxis]="(yAxis$ | async) || 0"
-    [xLines]="(gridLinesVertical$ | async) || []" [yLines]="(gridLinesHorizontal$ | async) || []"></g>
-
-  @for (object of (objects$ | async); track object.id) {
-  <g app-segment [segment]="object.geometry" [selected]="object.selected"></g>
+  @for (object of objects$ | async; track object.id) {
+    <g app-segment [segment]="object.geometry" [selected]="object.selected"></g>
   }
 
   @if (position$ | async; as position) {
-  <text x="10" y="30">X: {{ position.x | number:'1.2-2' }}</text>
-  <text x="10" y="50">Y: {{ position.y | number:'1.2-2' }}</text>
+    <text x="10" y="30">X: {{ position.x | number: '1.2-2' }}</text>
+    <text x="10" y="50">Y: {{ position.y | number: '1.2-2' }}</text>
   }
 
-
   @if (mouseTooltip$ | async; as tooltip) {
-  <g app-cursor-tooltip [cursorData]="tooltip"></g>
+    <g app-cursor-tooltip [cursorData]="tooltip"></g>
   }
 
   @if (draftSegment$ | async; as draft) {
-  <line class="segment" [attr.x1]="draft[0].x" [attr.x2]="draft[1].x" [attr.y1]="draft[0].y" [attr.y2]="draft[1].y">
-  </line>
+    <line
+      class="segment"
+      [attr.x1]="draft[0].x"
+      [attr.x2]="draft[1].x"
+      [attr.y1]="draft[0].y"
+      [attr.y2]="draft[1].y"></line>
   }
 
   @if (selectionArea$ | async; as selection) {
-  <rect class="selection" [attr.x]="selection.point.x" [attr.y]="selection.point.y" [attr.width]="selection.width"
-    [attr.height]="selection.height"></rect>
+    <rect
+      class="selection"
+      [attr.x]="selection.point.x"
+      [attr.y]="selection.point.y"
+      [attr.width]="selection.width"
+      [attr.height]="selection.height"></rect>
   }
-
 </svg>
 
 <app-toolbar></app-toolbar>
 
-<app-scale [scale]="zoom$ | async" (scaleChange)="scaleChange$.next($event)"></app-scale>
+<app-scale
+  [scale]="zoom$ | async"
+  (scaleChange)="scaleChange$.next($event)"></app-scale>
 
 @if (barScale$ | async; as barScale) {
-<app-bar-scale [step]="barScale.step" [width]="barScale.stepWidth"></app-bar-scale>
+  <app-bar-scale
+    [step]="barScale.step"
+    [width]="barScale.stepWidth"></app-bar-scale>
 }
