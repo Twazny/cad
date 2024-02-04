@@ -2,39 +2,26 @@
 
 Web application inspired by Autodesk AutoCAD.
 
-Current features include:
-- workspace with 2D coordinate system
-- support grid lines adapting to scale
-- workspace panning
-- workspace zoom by mouse wheel
-- workspace zoom by +/- controls
-- drawing lines
-- selecting lines with window selection (from left to right)
-- selecting lines with crossing selection (from right to left)
-- deleting lines
+Current features nad roadmap:
+- [x] workspace with 2D coordinate system
+- [x] support grid lines adapting to scale
+- [x] workspace panning
+- [x] workspace zoom by mouse wheel
+- [x] workspace zoom by +/- controls
+- [x] drawing segments
+- [x] selecting segments with window selection (from left to right)
+- [x] selecting segments with crossing selection (from right to left)
+- [x] deleting segments
+- [ ] hotkeys support
+- [ ] undo/redo action
+- [ ] visually emphasise segments and points in proximity of cursor
+- [ ] single element selection
+- [ ] updating segment width
+- [ ] drawing segment from point
+- [ ] segment relations
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.6.
+Angular 17, NGRX, RxAngular
 
-## Development server
+## Live preview
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
-
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Jest](https://jestjs.io/).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+https://cad-angular-app.web.app/
