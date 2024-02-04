@@ -44,6 +44,7 @@ export class WorkspaceStateService {
       position: WorkspaceStateService.INITIAL_POSITION,
       objects: [],
       selectedObjectIds: [],
+      willBeSelectedIds: [],
       mainCommand: WorkspaceStateService.INITIAL_COMMAND,
     });
     connect('objects', this.store.select(selectAllObjects));
@@ -142,8 +143,8 @@ export class WorkspaceStateService {
   public viewportObjects$: Observable<
     (WorkspaceObject & { selected: boolean })[]
   > = this.state.select(
-    ['scale', 'position', 'objects', 'selectedObjectIds'],
-    ({ scale, position, objects, selectedObjectIds }) => {
+    ['scale', 'position', 'objects', 'selectedObjectIds', 'willBeSelectedIds'],
+    ({ scale, position, objects, selectedObjectIds, willBeSelectedIds }) => {
       const translateVector = invertPoint(position);
       return objects.map((object: WorkspaceObject) => {
         const { geometry: segment } = object;
@@ -153,7 +154,9 @@ export class WorkspaceStateService {
             this._realSegmentToScreen(segment, translateVector, scale),
             scale
           ),
-          selected: selectedObjectIds.includes(object.id),
+          selected:
+            willBeSelectedIds.includes(object.id) ||
+            selectedObjectIds.includes(object.id),
         };
       });
     }
@@ -195,7 +198,7 @@ export class WorkspaceStateService {
           }),
           ...(selectionArea && {
             selectionArea: [selectionArea[0], mouseReal],
-            selectedObjectIds: this._getSelectedObjects(selectionArea, objects),
+            willBeSelectedIds: this._getSelectedObjects(selectionArea, objects),
           }),
         };
       }
@@ -264,6 +267,7 @@ export class WorkspaceStateService {
     position,
     scale,
     mouseScreenPosition,
+    willBeSelectedIds,
     selectedObjectIds,
     selectionArea,
   }: WorkspaceState): Partial<WorkspaceState> {
@@ -278,7 +282,7 @@ export class WorkspaceStateService {
         });
       }
     } else {
-      return this._applySelectionArea();
+      return this._applySelectionArea(willBeSelectedIds);
     }
   }
 
@@ -366,8 +370,17 @@ export class WorkspaceStateService {
     return { selectionArea: [mouseReal, mouseReal] };
   }
 
-  private _applySelectionArea(): Pick<WorkspaceState, 'selectionArea'> {
-    return { selectionArea: null };
+  private _applySelectionArea(
+    willBeSelectedIds: string[]
+  ): Pick<
+    WorkspaceState,
+    'selectionArea' | 'selectedObjectIds' | 'willBeSelectedIds'
+  > {
+    return {
+      selectionArea: null,
+      selectedObjectIds: [...willBeSelectedIds],
+      willBeSelectedIds: [],
+    };
   }
 
   private _mouseScreenToReal(

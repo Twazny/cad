@@ -6,6 +6,7 @@ import { Command } from './command.enum';
 
 export interface WorkspaceState {
   objects: WorkspaceObject[];
+  willBeSelectedIds: string[];
   selectedObjectIds: string[];
   scale: number;
   lastPosition: Point;
