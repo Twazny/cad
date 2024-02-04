@@ -17,6 +17,7 @@
   app-button-icon
   aria-label="delete selected objects"
   [disabled]="(isAnythingSelected$ | async) === false"
-  (click)="delete$.next()">
+  (click)="delete$.next()"
+  data-test="delete-button">
   <app-icon>delete</app-icon>
 </button>
