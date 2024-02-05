@@ -2,22 +2,22 @@
     <svg:line
         stroke-width="1"
         stroke="white"
-        [attr.x1]="segment[0].x"
         class="segment"
         [ngClass]="{
             hovered: hovered(),
-            selected: selected
+            selected: selected()
         }"
-        [attr.x2]="segment[1].x"
-        [attr.y1]="segment[0].y"
-        [attr.y2]="segment[1].y"
+        [attr.x1]="segment()[0].x"
+        [attr.x2]="segment()[1].x"
+        [attr.y1]="segment()[0].y"
+        [attr.y2]="segment()[1].y"
     ></svg:line>
     <svg:path
         class="segment-path"
         (mouseenter)="hovered.set(true)"
         (mouseleave)="hovered.set(false)"
-        [attr.transform]="rotate"
-        [attr.d]="path"
+        [attr.transform]="rotate()"
+        [attr.d]="path()"
         stroke="none"
         fill="none"
         stroke-width="0"
