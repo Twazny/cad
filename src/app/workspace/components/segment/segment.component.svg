@@ -1,25 +1,51 @@
 <svg:g>
-    <svg:line
-        stroke-width="1"
-        stroke="white"
-        class="segment"
-        [ngClass]="{
-            hovered: hovered(),
-            selected: selected()
-        }"
-        [attr.x1]="segment()[0].x"
-        [attr.x2]="segment()[1].x"
-        [attr.y1]="segment()[0].y"
-        [attr.y2]="segment()[1].y"
-    ></svg:line>
-    <svg:path
-        class="segment-path"
-        (mouseenter)="hovered.set(true)"
-        (mouseleave)="hovered.set(false)"
-        [attr.transform]="rotate()"
-        [attr.d]="path()"
-        stroke="none"
-        fill="none"
-        stroke-width="0"
-    />
+	<svg:line
+		stroke-width="1"
+		stroke="white"
+		class="segment"
+		[ngClass]="{
+				selected: selected(),
+				proximity: lineProximity()
+		}"
+		[attr.x1]="firstPointX()"
+		[attr.y1]="firstPointY()"
+		[attr.x2]="secondPointX()"
+		[attr.y2]="secondPointY()"
+	></svg:line>
+	<svg:path
+		[id]="segment().id"
+		class="segment-path"
+		(mouseenter)="hovered.set(true)"
+		(mouseleave)="hovered.set(false)"
+		[attr.transform]="rotate()"
+		[attr.d]="path()"
+		stroke="none"
+		fill="none"
+		stroke-width="0"
+		proximity
+	/>
+	<svg:circle
+		class="point-proximity"
+		[id]="firstPointId()"
+		[attr.cx]="firstPointX()"
+		[attr.cy]="firstPointY()"
+		[attr.r]="10"
+		[class.proximity]="firstPointProx()"
+		fill="transparent"
+		stroke="transparent"
+		stroke-width="1"
+		proximity
+	/>
+	<svg:circle
+		class="point-proximity"
+		[id]="secondPointId()"
+		[attr.cx]="secondPointX()"
+		[attr.cy]="secondPointY()"
+		[attr.r]="10"
+		[class.proximity]="secondPointProx()"
+		fill="transparent"
+		stroke="transparent"
+		stroke-width="1"
+		proximity
+	/>
 </svg:g>

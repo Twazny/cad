@@ -16,6 +16,7 @@ import {
   slope,
   slopeToAngle,
 } from 'src/app/geometry/models';
+import { SegmentViewModel } from '../../models/segment-vm.interface';
 
 @Component({
   selector: 'g[app-segment]',
@@ -26,14 +27,35 @@ import {
   standalone: true,
 })
 export class SegmentComponent {
-  public segment: InputSignal<Segment> = input.required();
+  public segment: InputSignal<SegmentViewModel> = input.required();
   public selected: InputSignal<boolean> = input.required();
 
   @Output() public readonly hoveredChange: EventEmitter<boolean> =
     new EventEmitter();
 
-  protected path = computed(() => this._calculatePath(this.segment()));
-  protected rotate = computed(() => this._calculateRotate(this.segment()));
+  protected path = computed(() =>
+    this._calculatePath(this.segment().geometry as Segment)
+  );
+  protected rotate = computed(() =>
+    this._calculateRotate(this.segment().geometry as Segment)
+  );
+
+  protected lineProximity = computed(() => this.segment().inProximity);
+
+  protected firstPointId = computed(() => this.segment().geometry[0].id);
+  protected firstPointX = computed(() => this.segment().geometry[0].x);
+  protected firstPointY = computed(() => this.segment().geometry[0].y);
+  protected firstPointProx = computed(
+    () => this.segment().geometry[0].inProximity
+  );
+
+  protected secondPointId = computed(() => this.segment().geometry[1].id);
+  protected secondPointX = computed(() => this.segment().geometry[1].x);
+  protected secondPointY = computed(() => this.segment().geometry[1].y);
+  protected secondPointProx = computed(
+    () => this.segment().geometry[1].inProximity
+  );
+
   protected hovered = signal(false);
 
   private readonly hoveredEffect = effect(() =>

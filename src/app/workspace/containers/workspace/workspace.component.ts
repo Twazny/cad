@@ -14,6 +14,8 @@ import {
   CursorTooltipComponent,
 } from '../../components';
 import { ZoomService } from '../../services/zoom/zoom.service';
+import { ProximityService } from '../../services/proximity/proximity.service';
+import { KeyboardService } from '../../services/keyboard/keyboard.service';
 
 @Component({
   selector: 'app-workspace',
@@ -32,11 +34,21 @@ import { ZoomService } from '../../services/zoom/zoom.service';
   ],
   templateUrl: './workspace.component.html',
   styleUrls: ['./workspace.component.scss'],
-  providers: [WorkspaceStateService, ZoomService],
+  providers: [
+    WorkspaceStateService,
+    ZoomService,
+    ProximityService,
+    KeyboardService,
+  ],
+  host: {
+    '(window:keydown)': 'keydown$.next($event)',
+  },
 })
 export class WorkspaceComponent implements OnInit {
   private readonly workspaceState = inject(WorkspaceStateService);
+  private readonly proximityService = inject(ProximityService);
   private readonly zoomService = inject(ZoomService);
+  private readonly keyboardService = inject(KeyboardService);
 
   protected readonly objects$ = this.workspaceState.viewportObjects$;
   protected readonly position$ = this.workspaceState.position$;
@@ -64,14 +76,16 @@ export class WorkspaceComponent implements OnInit {
   scaleChange$: Subject<number> = new Subject();
   click$: Subject<MouseEvent> = new Subject();
   mousemove$: Subject<MouseEvent> = new Subject();
+  keydown$: Subject<KeyboardEvent> = new Subject();
 
   public ngOnInit(): void {
     this.workspaceState.connectResize(this.resize$);
     this.workspaceState.connectDrag(this.drag$);
     this.workspaceState.connectMousemove(this.mousemove$);
     this.workspaceState.connectClick(this.click$);
-
     this.zoomService.connectWheel(this.wheel$);
     this.zoomService.connectZoom(this.scaleChange$);
+    this.keyboardService.connectKeyDown(this.keydown$);
+    this.proximityService.connectMousemouve(this.mousemove$);
   }
 }

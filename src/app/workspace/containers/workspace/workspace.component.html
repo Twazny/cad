@@ -16,7 +16,7 @@
     [yLines]="(gridLinesHorizontal$ | async) || []"></g>
 
   @for (object of objects$ | async; track object.id) {
-    <g app-segment [segment]="object.geometry" [selected]="object.selected"></g>
+    <g app-segment [segment]="object" [selected]="object.isSelected"></g>
   }
 
   @if (position$ | async; as position) {

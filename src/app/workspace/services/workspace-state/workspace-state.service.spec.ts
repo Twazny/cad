@@ -1,40 +1,35 @@
 import { MockBuilder, MockRender } from 'ng-mocks';
 import { WorkspaceStateService } from './workspace-state.service';
 import { provideMockStore } from '@ngrx/store/testing';
-import { EntityState } from '@ngrx/entity';
-import { ScaleChange, WorkspaceObject } from '../../models';
+import { ScaleChange, SegmentState } from '../../models';
 import { TestScheduler } from 'rxjs/testing';
 import { ColdObservable } from 'rxjs/internal/testing/ColdObservable';
 import { of } from 'rxjs';
+import { selectAllObjects } from '../../store/object.selectors';
 
-const initialState: { objects: EntityState<WorkspaceObject> } = {
-  objects: {
-    ids: ['1', '2', '3'],
-    entities: {
-      '1': {
-        id: '1',
-        geometry: [
-          { x: 10, y: 10 },
-          { x: 10, y: 30 },
-        ],
-      },
-      '2': {
-        id: '2',
-        geometry: [
-          { x: 10, y: 10 },
-          { x: 30, y: 30 },
-        ],
-      },
-      '3': {
-        id: '3',
-        geometry: [
-          { x: 10, y: 30 },
-          { x: 30, y: 30 },
-        ],
-      },
-    },
+const initialState: SegmentState[] = [
+  {
+    id: '1',
+    geometry: [
+      { id: 'p1', x: 10, y: 10 },
+      { id: 'p2', x: 10, y: 30 },
+    ],
   },
-};
+  {
+    id: '2',
+    geometry: [
+      { id: 'p3', x: 10, y: 10 },
+      { id: 'p4', x: 30, y: 30 },
+    ],
+  },
+  {
+    id: '3',
+    geometry: [
+      { id: 'p5', x: 10, y: 30 },
+      { id: 'p6', x: 30, y: 30 },
+    ],
+  },
+];
 
 describe('WorkspaceStateService', () => {
   let service: WorkspaceStateService;
@@ -42,7 +37,11 @@ describe('WorkspaceStateService', () => {
 
   beforeEach(async () =>
     MockBuilder(WorkspaceStateService)
-      .provide(provideMockStore({ initialState }))
+      .provide(
+        provideMockStore({
+          selectors: [{ selector: selectAllObjects, value: initialState }],
+        })
+      )
       .then(() => {
         service = MockRender(WorkspaceStateService).point.componentInstance;
         service.connectResize(of({ width: 100, height: 100 }));
@@ -76,78 +75,87 @@ describe('WorkspaceStateService', () => {
             {
               id: '1',
               geometry: [
-                { x: 10, y: 10 },
-                { x: 10, y: 29 },
+                { id: 'p1', x: 10, y: 10, inProximity: false },
+                { id: 'p2', x: 10, y: 29, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
             {
               id: '2',
               geometry: [
-                { x: 10, y: 10 },
-                { x: 29, y: 29 },
+                { id: 'p3', x: 10, y: 10, inProximity: false },
+                { id: 'p4', x: 29, y: 29, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
             {
               id: '3',
               geometry: [
-                { x: 10, y: 29 },
-                { x: 29, y: 29 },
+                { id: 'p5', x: 10, y: 29, inProximity: false },
+                { id: 'p6', x: 29, y: 29, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
           ],
           b: [
             {
               id: '1',
               geometry: [
-                { x: 10, y: 10 },
-                { x: 10, y: 30 },
+                { id: 'p1', x: 10, y: 10, inProximity: false },
+                { id: 'p2', x: 10, y: 30, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
             {
               id: '2',
               geometry: [
-                { x: 10, y: 10 },
-                { x: 30, y: 30 },
+                { id: 'p3', x: 10, y: 10, inProximity: false },
+                { id: 'p4', x: 30, y: 30, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
             {
               id: '3',
               geometry: [
-                { x: 10, y: 30 },
-                { x: 30, y: 30 },
+                { id: 'p5', x: 10, y: 30, inProximity: false },
+                { id: 'p6', x: 30, y: 30, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
           ],
           c: [
             {
               id: '1',
               geometry: [
-                { x: 10, y: 10 },
-                { x: 10, y: 40 },
+                { id: 'p1', x: 10, y: 10, inProximity: false },
+                { id: 'p2', x: 10, y: 40, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
             {
               id: '2',
               geometry: [
-                { x: 10, y: 10 },
-                { x: 40, y: 40 },
+                { id: 'p3', x: 10, y: 10, inProximity: false },
+                { id: 'p4', x: 40, y: 40, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
             {
               id: '3',
               geometry: [
-                { x: 10, y: 40 },
-                { x: 40, y: 40 },
+                { id: 'p5', x: 10, y: 40, inProximity: false },
+                { id: 'p6', x: 40, y: 40, inProximity: false },
               ],
-              selected: false,
+              inProximity: false,
+              isSelected: false,
             },
           ],
         };
