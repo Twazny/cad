@@ -4,10 +4,10 @@ path {
     fill: transparent;
 }
 
-line.hovered {
-    stroke: lime;
-}
-
 line.selected {
     stroke: $selection-color;
+}
+
+.proximity {
+    stroke: lime;
 }

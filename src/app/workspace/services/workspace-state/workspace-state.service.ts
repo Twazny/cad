@@ -24,14 +24,17 @@ import {
 import {
   CursorData,
   Command,
-  WorkspaceObject,
   WorkspaceState,
   ScaleChange,
   GridLines,
+  PointEntity,
+  SegmentState,
 } from '../../models';
 import { selectAllObjects } from '../../store/object.selectors';
 import * as ObjectActions from '../../store/object.actions';
 import { roundSegment } from 'src/app/utils/round';
+import { DraftSegment } from '../../models/draft-segment.interface';
+import { SegmentViewModel } from '../../models/segment-vm.interface';
 
 @Injectable()
 export class WorkspaceStateService {
@@ -46,6 +49,7 @@ export class WorkspaceStateService {
       selectedObjectIds: [],
       willBeSelectedIds: [],
       mainCommand: WorkspaceStateService.INITIAL_COMMAND,
+      proximityId: null,
     });
     connect('objects', this.store.select(selectAllObjects));
   });
@@ -140,27 +144,56 @@ export class WorkspaceStateService {
     }
   );
 
-  public viewportObjects$: Observable<
-    (WorkspaceObject & { selected: boolean })[]
-  > = this.state.select(
-    ['scale', 'position', 'objects', 'selectedObjectIds', 'willBeSelectedIds'],
-    ({ scale, position, objects, selectedObjectIds, willBeSelectedIds }) => {
+  public viewportObjects$: Observable<SegmentViewModel[]> = this.state.select(
+    [
+      'scale',
+      'position',
+      'objects',
+      'selectedObjectIds',
+      'willBeSelectedIds',
+      'proximityId',
+    ],
+    ({
+      scale,
+      position,
+      objects,
+      selectedObjectIds,
+      willBeSelectedIds,
+      proximityId,
+    }) => {
       const translateVector = invertPoint(position);
-      return objects.map((object: WorkspaceObject) => {
+      return objects.map((object: SegmentState) => {
         const { geometry: segment } = object;
+        const transformedSegment = roundSegment(
+          this._realSegmentToScreen(segment, translateVector, scale),
+          scale
+        );
         return {
           ...object,
-          geometry: roundSegment(
-            this._realSegmentToScreen(segment, translateVector, scale),
-            scale
-          ),
-          selected:
+          geometry: [
+            {
+              id: segment[0].id,
+              ...transformedSegment[0],
+              inProximity: segment[0].id === proximityId,
+            },
+            {
+              id: segment[1].id,
+              ...transformedSegment[1],
+              inProximity: segment[1].id === proximityId,
+            },
+          ],
+          inProximity: object.id === proximityId,
+          isSelected:
             willBeSelectedIds.includes(object.id) ||
             selectedObjectIds.includes(object.id),
         };
       });
     }
   );
+
+  public connectProximity(proximityId$: Observable<string | null>): void {
+    this.state.connect('proximityId', proximityId$);
+  }
 
   public connectDrag(drag$: Observable<Vector>): void {
     this.state.connect(
@@ -318,28 +351,35 @@ export class WorkspaceStateService {
   private _saveDraftSegment(
     draftSegment: Segment
   ): Pick<WorkspaceState, 'draftSegment'> {
-    const object = {
+    const payload: DraftSegment = {
       id: uuidv4(),
-      geometry: draftSegment,
+      geometry: [
+        (<PointEntity>draftSegment[0]).id
+          ? (draftSegment[0] as PointEntity)
+          : { id: uuidv4(), ...draftSegment[0] },
+        (<PointEntity>draftSegment[1]).id
+          ? (draftSegment[1] as PointEntity)
+          : { id: uuidv4(), ...draftSegment[1] },
+      ],
     };
-    this.store.dispatch(ObjectActions.addObject({ object }));
+    this.store.dispatch(ObjectActions.addObject(payload));
     return { draftSegment: null };
   }
 
   private _getSelectedObjects(
     selectionArea: Segment,
-    objects: WorkspaceObject[]
+    segments: SegmentState[]
   ): string[] {
     const includeIntersected = selectionArea[0].x > selectionArea[1].x;
     const boundingSegments = getBoundingSegments(selectionArea);
     const selectionRect = segmentToRect(selectionArea);
-    return objects
-      .filter(object => {
+    return segments
+      .filter(segment => {
         return (
-          this._isObjectContainedInSelection(selectionRect, object.geometry) ||
+          this._isObjectContainedInSelection(selectionRect, segment.geometry) ||
           (includeIntersected
-            ? boundingSegments.some(segment =>
-                areSegmentsIntersecting(segment, object.geometry)
+            ? boundingSegments.some(boundingSegment =>
+                areSegmentsIntersecting(boundingSegment, segment.geometry)
               )
             : false)
         );
